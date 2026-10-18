@@ -1,0 +1,76 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Attach token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('driveease_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Handle auth errors
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('driveease_token');
+      localStorage.removeItem('driveease_user');
+    }
+    return Promise.reject(error);
+  }
+);
+
+// --- Auth ---
+export const authApi = {
+  register: (data: any) => api.post('/auth/register', data),
+  login: (data: any) => api.post('/auth/login', data),
+  getMe: () => api.get('/auth/me'),
+  updateProfile: (data: any) => api.put('/auth/profile', data),
+  changePassword: (data: any) => api.put('/auth/change-password', data),
+};
+
+// --- Cars ---
+export const carsApi = {
+  getAll: (params?: any) => api.get('/cars', { params }),
+  getById: (id: string) => api.get(`/cars/${id}`),
+  checkAvailability: (id: string, params: any) => api.get(`/cars/${id}/availability`, { params }),
+  create: (data: any) => api.post('/cars', data),
+  update: (id: string, data: any) => api.put(`/cars/${id}`, data),
+  delete: (id: string) => api.delete(`/cars/${id}`),
+  getAllAdmin: () => api.get('/cars/admin/all'),
+};
+
+// --- Bookings ---
+export const bookingsApi = {
+  create: (data: any) => api.post('/bookings', data),
+  getMyBookings: (params?: any) => api.get('/bookings/my', { params }),
+  getById: (id: string) => api.get(`/bookings/${id}`),
+  getByBookingId: (bookingId: string) => api.get(`/bookings/id/${bookingId}`),
+  cancel: (id: string, data?: any) => api.post(`/bookings/${id}/cancel`, data),
+  createPaymentOrder: (id: string) => api.post(`/bookings/${id}/payment/create-order`),
+  verifyPayment: (id: string, data: any) => api.post(`/bookings/${id}/payment/verify`, data),
+};
+
+// --- Admin ---
+export const adminApi = {
+  getDashboard: () => api.get('/bookings/admin/dashboard'),
+  getAllBookings: (params?: any) => api.get('/admin/bookings', { params }),
+  updateBookingStatus: (id: string, data: any) => api.put(`/admin/bookings/${id}/status`, data),
+  confirmCash: (id: string) => api.post(`/bookings/${id}/cash-confirm`),
+  getAllUsers: () => api.get('/admin/users'),
+  updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
+  getSettings: () => api.get('/admin/settings'),
+  updateSettings: (settings: any) => api.put('/admin/settings', { settings }),
+};
+
+// --- Public ---
+export const publicApi = {
+  getSettings: () => api.get('/settings/public'),
+  healthCheck: () => api.get('/health'),
+};
+
+export default api;
