@@ -19,9 +19,11 @@ connectDB();
 
 // CORS
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', config.frontendUrl);
+  const origin = req.headers.origin || config.frontendUrl || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -68,14 +70,16 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(config.port, '0.0.0.0', () => {
-  console.log(`\n========================================`);
-  console.log(`🚗 DriveEase Backend API running!`);
-  console.log(`📡 URL       : http://localhost:${config.port}`);
-  console.log(`🔌 Health    : http://localhost:${config.port}/api/health`);
-  console.log(`🗄️  MongoDB   : ${config.mongoUri}`);
-  console.log(`🧪 Demo Mode : ${config.demoMode}`);
-  console.log(`========================================\n`);
-});
+if (!process.env.VERCEL) {
+  app.listen(config.port, '0.0.0.0', () => {
+    console.log(`\n========================================`);
+    console.log(`🚗 DriveEase Backend API running!`);
+    console.log(`📡 URL       : http://localhost:${config.port}`);
+    console.log(`🔌 Health    : http://localhost:${config.port}/api/health`);
+    console.log(`🗄️  MongoDB   : ${config.mongoUri}`);
+    console.log(`🧪 Demo Mode : ${config.demoMode}`);
+    console.log(`========================================\n`);
+  });
+}
 
 export default app;

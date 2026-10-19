@@ -2,11 +2,15 @@
   "name": "swiftcab-app",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "npm --prefix frontend run dev",
+    "dev": "node run-dev.js",
+    "dev:all": "node run-dev.js",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend run dev",
     "build": "npm --prefix frontend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "vercel-build": "npm --prefix frontend run build",
     "seed": "npm --prefix backend run seed",
     "start": "npm --prefix backend run start"
   }

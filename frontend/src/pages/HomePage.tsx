@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { carsApi, publicApi } from '../lib/api';
 import type { Car as CarType } from '../types';
 import ScrollVelocity from '../components/ScrollVelocity';
+import ScrollExpand from '../components/ScrollExpand';
 
 const DEFAULT_HERO_BG = '/images/hero-bg.jpg';
 
@@ -271,274 +272,254 @@ export default function HomePage() {
 
   return (
     <div style={{ backgroundColor: 'var(--surface)' }}>
-      {/* ================= HERO SECTION (Stunning Full-Width Automotive BG with Dark Gradient) ================= */}
-      <section
-        className="hero-section-single-bg"
-        style={{
-          position: 'relative',
-          minHeight: 'clamp(760px, 88vh, 1000px)',
-          paddingTop: 'clamp(7.5rem, 12vw, 10.5rem)',
-          paddingBottom: 'clamp(5.5rem, 9vw, 8rem)',
-          backgroundImage: `url('${heroBg}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 45%',
-          backgroundRepeat: 'no-repeat',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Cinematic Warm Dark Charcoal & Amber Sunset Overlay for Maximum Readability & Warmth */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(20, 22, 26, 0.82) 0%, rgba(32, 34, 38, 0.52) 45%, rgba(20, 22, 26, 0.94) 100%)',
-          pointerEvents: 'none'
-        }} />
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(245, 166, 35, 0.18) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }} />
-
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '96rem', margin: '0 auto', padding: '0 clamp(1.25rem, 4.5vw, 4rem)' }}>
-          {/* Centered Hero Header Content */}
-          <div className="animate-fade-in-up" style={{ maxWidth: '58rem', margin: '0 auto 2.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
-            {/* Main Bold Headline */}
-            <h1 style={{
-              fontFamily: "'Plus Jakarta Sans', var(--font-heading), sans-serif",
-              fontSize: 'clamp(2.6rem, 5.5vw, 4.4rem)',
-              fontWeight: 900,
-              lineHeight: 1.15,
-              letterSpacing: '-0.035em',
-              color: '#ffffff',
-              margin: 0,
-              textShadow: '0 4px 24px rgba(0, 0, 0, 0.65)'
-            }}>
-              {headlineMain} <br />
-              <span style={{
-                background: 'linear-gradient(90deg, #F5A623 0%, #FBBF24 50%, #FFFFFF 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'inline-block'
+      {/* ================= HERO SECTION WITH SCROLLEXPAND ANIMATION ================= */}
+      <section className="relative w-full bg-[#14161a]" style={{ overflow: 'visible' }}>
+        <ScrollExpand
+          src={heroBg}
+          mediaType="image"
+          alt="VELOCE Luxury Fleet"
+          title="PURE MOTORING FREEDOM"
+          scrollHint="Scroll to expand fleet search"
+          startWidth={54}
+          startHeight={64}
+          startRadius={28}
+          endRadius={0}
+          mediaZoom={1.25}
+          scrollDistance={1.4}
+          holdDistance={0.8}
+          smoothing={0.06}
+          overlayScrim={0.62}
+          useWindowScroll={true}
+          className="w-full bg-[#14161a]"
+        >
+          <div className="w-full max-w-[96rem] mx-auto px-3 sm:px-6 md:px-10 flex flex-col items-center justify-center my-auto pt-16 sm:pt-20">
+            {/* Centered Hero Header Content */}
+            <div style={{ maxWidth: '58rem', margin: '0 auto 2.2rem', textAlign: 'center' }}>
+              <h1 style={{
+                fontFamily: "'Plus Jakarta Sans', var(--font-heading), sans-serif",
+                fontSize: 'clamp(2.4rem, 5.2vw, 4.2rem)',
+                fontWeight: 900,
+                lineHeight: 1.15,
+                letterSpacing: '-0.035em',
+                color: '#ffffff',
+                margin: 0,
+                textShadow: '0 4px 24px rgba(0, 0, 0, 0.75)'
               }}>
-                {headlineHighlight}
-              </span>
-            </h1>
-          </div>
-
-          {/* ================= ULTRA-WIDE LOW-PROFILE SEARCH BAR ================= */}
-          <div className="animate-fade-in-up delay-100" style={{ maxWidth: '82rem', width: '100%', margin: '0 auto' }}>
-            <div style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.98)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              border: '1px solid rgba(226, 221, 213, 0.95)',
-              padding: '0.45rem 0.75rem',
-              boxShadow: '0 20px 50px -12px rgba(24, 25, 27, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.7)'
-            }}>
-
-              {/* Ultra-Wide Low-Profile Single-Row Form Grid */}
-              <form onSubmit={handleSearch} style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(195px, 1fr))',
-                gap: '0.55rem',
-                alignItems: 'center'
-              }}>
-
-                {/* 1. Location (Dynamic from Admin Locations Database) */}
-                <div style={{
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '10px',
-                  backgroundColor: '#F8F6F2',
-                  border: '1.5px solid #E4DDD6',
-                  transition: 'border-color 0.15s ease'
+                {headlineMain} <br />
+                <span style={{
+                  background: 'linear-gradient(90deg, #F5A623 0%, #FBBF24 50%, #FFFFFF 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  display: 'inline-block'
                 }}>
-                  <label
-                    htmlFor="hero-pickup-location"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      fontSize: '0.62rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#78716C',
-                      fontWeight: 700,
-                      marginBottom: '0.08rem'
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '0.9rem', color: '#F5A623' }}>location_on</span>
-                    Pick-up Location
-                  </label>
-                  <select
-                    id="hero-pickup-location"
-                    value={pickupLocation}
-                    onChange={e => setPickupLocation(e.target.value)}
-                    style={{
-                      width: '100%',
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      color: '#18191B',
-                      cursor: 'pointer',
-                      padding: '0.1rem 0'
-                    }}
-                  >
-                    {locations.length > 0 ? (
-                      locations.map((loc) => (
-                        <option key={loc._id || loc.code} value={loc.code}>
-                          {loc.name} · {loc.city} ({loc.hubPin || 'Bay 14'})
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="DWTN-HUB">Main Downtown Car Hub - 4th St</option>
-                        <option value="CENTRAL-OFFICE">Central Company Office Lot</option>
-                        <option value="AIRPORT-EXPRESS">Airport Express Hub - Bay 14</option>
-                        <option value="MUM-BKC">Mumbai BKC Hub - Bay 1</option>
-                        <option value="BLR-KRM">Bengaluru Koramangala Hub</option>
-                      </>
-                    )}
-                  </select>
-                </div>
+                  {headlineHighlight}
+                </span>
+              </h1>
+            </div>
 
-                {/* 2. Pickup Date & Time (Restricted: Today and upcoming days only) */}
-                <div style={{
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '10px',
-                  backgroundColor: '#F8F6F2',
-                  border: '1.5px solid #E4DDD6',
-                  transition: 'border-color 0.15s ease'
-                }}>
-                  <label
-                    htmlFor="hero-departure-time"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      fontSize: '0.62rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#78716C',
-                      fontWeight: 700,
-                      marginBottom: '0.08rem'
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '0.9rem', color: '#F5A623' }}>calendar_today</span>
-                    Pick-up Time &amp; Date
-                  </label>
-                  <input
-                    id="hero-departure-time"
-                    type="datetime-local"
-                    min={getTodayMinDateTime()}
-                    value={departureTime}
-                    onChange={e => handleDepartureChange(e.target.value)}
-                    className="jetbrains-mono-600"
-                    style={{
-                      width: '100%',
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      fontSize: '0.82rem',
-                      color: '#18191B',
-                      cursor: 'pointer',
-                      padding: '0.1rem 0'
-                    }}
-                  />
-                </div>
+            {/* ULTRA-WIDE HIGH-PRESENCE SEARCH BAR */}
+            <div className="hero-search-container-box">
+              <div className="hero-search-inner-card">
 
-                {/* 3. Return Date & Time */}
-                <div style={{
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '10px',
-                  backgroundColor: '#F8F6F2',
-                  border: '1.5px solid #E4DDD6',
-                  transition: 'border-color 0.15s ease'
-                }}>
-                  <label
-                    htmlFor="hero-return-time"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      fontSize: '0.62rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: '#78716C',
-                      fontWeight: 700,
-                      marginBottom: '0.08rem'
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '0.9rem', color: '#F5A623' }}>event_repeat</span>
-                    Return Time &amp; Date
-                  </label>
-                  <input
-                    id="hero-return-time"
-                    type="datetime-local"
-                    min={departureTime || getTodayMinDateTime()}
-                    value={returnTime}
-                    onChange={e => handleReturnChange(e.target.value)}
-                    className="jetbrains-mono-600"
-                    style={{
-                      width: '100%',
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      fontSize: '0.82rem',
-                      color: '#18191B',
-                      cursor: 'pointer',
-                      padding: '0.1rem 0'
-                    }}
-                  />
-                </div>
+                {/* Single-Row Form Grid with Button Anchored to the Right of Return Time */}
+                <form onSubmit={handleSearch} className="hero-search-form-grid">
 
-                {/* 4. Find Your Car Button (Compact Height, High Visual Impact) */}
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <button
-                    type="submit"
-                    style={{
-                      width: '100%',
-                      height: '2.65rem',
-                      padding: '0 1.25rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.45rem',
-                      backgroundColor: '#F5A623',
-                      color: '#18191B',
-                      border: 'none',
-                      borderRadius: '10px',
-                      whiteSpace: 'nowrap',
-                      fontSize: '0.88rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(245, 166, 35, 0.4)',
-                      transition: 'all 0.15s ease-in-out'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#e69818';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#F5A623';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.15rem' }}>search</span>
-                    <span>Find Your Car</span>
-                  </button>
-                </div>
-              </form>
+                  {/* 1. Pick-up Location */}
+                  <div style={{
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#F8F6F2',
+                    border: '1.5px solid #E2D9CF',
+                    transition: 'border-color 0.15s ease'
+                  }}>
+                    <label
+                      htmlFor="hero-pickup-location"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.64rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.07em',
+                        color: '#6B6560',
+                        fontWeight: 800,
+                        marginBottom: '0.12rem'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>location_on</span>
+                      Pick-up Location
+                    </label>
+                    <select
+                      id="hero-pickup-location"
+                      value={pickupLocation}
+                      onChange={e => setPickupLocation(e.target.value)}
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        color: '#18191B',
+                        cursor: 'pointer',
+                        padding: '0.1rem 0'
+                      }}
+                    >
+                      {locations.length > 0 ? (
+                        locations.map((loc) => (
+                          <option key={loc._id || loc.code} value={loc.code}>
+                            {loc.name} · {loc.city} ({loc.hubPin || 'Bay 14'})
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="DWTN-HUB">Main Downtown Car Hub - 4th St</option>
+                          <option value="CENTRAL-OFFICE">Central Company Office Lot</option>
+                          <option value="AIRPORT-EXPRESS">Airport Express Hub - Bay 14</option>
+                          <option value="MUM-BKC">Mumbai BKC Hub - Bay 1</option>
+                          <option value="BLR-KRM">Bengaluru Koramangala Hub</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
 
+                  {/* 2. Pickup Date & Time (Restricted: Today and upcoming days only) */}
+                  <div style={{
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#F8F6F2',
+                    border: '1.5px solid #E2D9CF',
+                    transition: 'border-color 0.15s ease'
+                  }}>
+                    <label
+                      htmlFor="hero-departure-time"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.64rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.07em',
+                        color: '#6B6560',
+                        fontWeight: 800,
+                        marginBottom: '0.12rem'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>calendar_today</span>
+                      Pick-up Time &amp; Date
+                    </label>
+                    <input
+                      id="hero-departure-time"
+                      type="datetime-local"
+                      min={getTodayMinDateTime()}
+                      value={departureTime}
+                      onChange={e => handleDepartureChange(e.target.value)}
+                      className="jetbrains-mono-600"
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: '0.84rem',
+                        color: '#18191B',
+                        cursor: 'pointer',
+                        padding: '0.1rem 0'
+                      }}
+                    />
+                  </div>
+
+                  {/* 3. Return Date & Time */}
+                  <div style={{
+                    padding: '0.45rem 0.85rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#F8F6F2',
+                    border: '1.5px solid #E2D9CF',
+                    transition: 'border-color 0.15s ease'
+                  }}>
+                    <label
+                      htmlFor="hero-return-time"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.64rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.07em',
+                        color: '#6B6560',
+                        fontWeight: 800,
+                        marginBottom: '0.12rem'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>event_repeat</span>
+                      Return Time &amp; Date
+                    </label>
+                    <input
+                      id="hero-return-time"
+                      type="datetime-local"
+                      min={departureTime || getTodayMinDateTime()}
+                      value={returnTime}
+                      onChange={e => handleReturnChange(e.target.value)}
+                      className="jetbrains-mono-600"
+                      style={{
+                        width: '100%',
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: '0.84rem',
+                        color: '#18191B',
+                        cursor: 'pointer',
+                        padding: '0.1rem 0'
+                      }}
+                    />
+                  </div>
+
+                  {/* 4. Find Your Car Button (Right side of Return Trip box, heavy weight & high impact) */}
+                  <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                    <button
+                      type="submit"
+                      id="hero-find-car-btn"
+                      style={{
+                        width: '100%',
+                        minWidth: '185px',
+                        height: '3.1rem',
+                        padding: '0 2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        backgroundColor: '#F5A623',
+                        color: '#000000',
+                        border: 'none',
+                        borderRadius: '12px',
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.94rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.015em',
+                        cursor: 'pointer',
+                        boxShadow: '0 6px 20px rgba(245, 166, 35, 0.45)',
+                        transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#e09315';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(245, 166, 35, 0.55)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#F5A623';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 166, 35, 0.45)';
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem', fontWeight: 900 }}>search</span>
+                      <span>Find Your Car</span>
+                    </button>
+                  </div>
+                </form>
+
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollExpand>
       </section>
 
       {/* ================= OFFERS & BROADCASTS VELOCITY TICKER ================= */}

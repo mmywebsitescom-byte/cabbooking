@@ -63,8 +63,13 @@ type AdminTab =
   | 'security';
 
 export default function AdminPage() {
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, login, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Admin In-Page Authentication State
+  const [adminEmail, setAdminEmail] = useState('admin@veloce.io');
+  const [adminPassword, setAdminPassword] = useState('Admin@123');
+  const [adminLoggingIn, setAdminLoggingIn] = useState(false);
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
@@ -244,17 +249,23 @@ export default function AdminPage() {
   } | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login?redirect=/admin');
-      return;
+    if (user && user.role === 'admin') {
+      loadAllAdminData();
     }
-    if (user.role !== 'admin') {
-      toast.error('Admin privileges required');
-      navigate('/');
-      return;
-    }
-    loadAllAdminData();
   }, [user]);
+
+  const handleAdminSignIn = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setAdminLoggingIn(true);
+    try {
+      await login(adminEmail, adminPassword);
+      toast.success('Authenticated as System Administrator!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Invalid administrator credentials');
+    } finally {
+      setAdminLoggingIn(false);
+    }
+  };
 
   const recordAudit = async (action: string, category: any, details: string, targetId?: string) => {
     try {
@@ -1026,6 +1037,86 @@ export default function AdminPage() {
     return list;
   }, [bookings, cars]);
 
+  if (authLoading) {
+    return <LoadingPage />;
+  }
+
+  // If user is not logged in or not admin, show dedicated executive admin access gate!
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-4 antialiased">
+        <div className="max-w-md w-full bg-[#1E293B] rounded-3xl p-8 border border-slate-700/80 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-[#F5A623] to-blue-500"></div>
+
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 rounded-2xl bg-[#F5A623] text-black font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/25">
+              ⚡
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">VELOCE Control Center</h1>
+            <p className="text-xs text-slate-400 mt-1">Executive Administrator Authentication Required</p>
+          </div>
+
+          <form onSubmit={handleAdminSignIn} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                Admin Email
+              </label>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={e => setAdminEmail(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-amber-500 focus:outline-none"
+                placeholder="admin@veloce.io"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+                Security Password
+              </label>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={e => setAdminPassword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-amber-500 focus:outline-none"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={adminLoggingIn}
+              className="w-full py-3 px-4 rounded-xl bg-[#F5A623] hover:bg-[#e09315] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/20 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {adminLoggingIn ? (
+                <span>Authenticating...</span>
+              ) : (
+                <>
+                  <Shield size={16} />
+                  <span>⚡ Sign In to Admin Control Center</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-slate-700/60 text-center flex flex-col gap-2">
+            <span className="text-[11px] text-slate-400 font-mono">
+              Demo Credentials: <strong className="text-amber-400">admin@veloce.io</strong> / <strong className="text-amber-400">Admin@123</strong>
+            </span>
+            <Link
+              to="/"
+              className="text-xs text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1 mt-1 font-semibold"
+            >
+              ← Return to Public Website
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading && !bookings.length && !cars.length) {
     return <LoadingPage />;
   }
@@ -1227,9 +1318,19 @@ export default function AdminPage() {
               <div className="text-[10px] text-slate-500 mt-0.5">Bay 14A - 14D (Handover Ready)</div>
             </div>
 
+            <Link
+              to="/profile"
+              id="admin-sidebar-profile-btn"
+              className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <Users size={14} className="text-[#004ac6]" />
+              <span>Admin Profile &amp; Settings</span>
+            </Link>
+
             <button
               type="button"
               onClick={logout}
+              id="admin-sidebar-logout-btn"
               className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl border border-rose-200 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
             >
               <LogOut size={14} />

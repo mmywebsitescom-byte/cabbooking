@@ -7,8 +7,16 @@ import { LoadingPage, formatCurrency } from '../components/UI';
 import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      logout();
+      toast.success('Logged out successfully');
+      navigate('/login');
+    }
+  };
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,22 +139,39 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+            <Link
+              to="/profile"
+              id="dashboard-profile-btn"
+              className="px-4 py-2 rounded-full border border-slate-300 text-slate-800 hover:bg-slate-100 transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-xs font-semibold"
+            >
+              <span className="material-symbols-outlined text-[18px]">person</span>
+              <span>Profile &amp; License</span>
+            </Link>
             <button
               onClick={fetchBookings}
               type="button"
-              className="px-4 py-2 rounded-full border border-outline-variant text-on-surface hover:bg-surface-container transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2 rounded-full border border-outline-variant text-on-surface hover:bg-surface-container transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-xs"
             >
               <span className="material-symbols-outlined text-[18px]">refresh</span>
-              <span>Sync Fleet</span>
+              <span>Sync</span>
             </button>
             <Link
               to="/cars"
-              className="px-5 py-2 rounded-full bg-primary text-on-primary hover:bg-primary-container transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-sm"
+              className="px-4 py-2 rounded-full bg-primary text-on-primary hover:bg-primary-container transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-sm font-semibold"
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
-              <span>Reserve New Car</span>
+              <span>Reserve Car</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              type="button"
+              id="dashboard-logout-btn"
+              className="px-3.5 py-2 rounded-full border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors font-label-md text-label-md flex items-center gap-1.5 shadow-xs font-semibold"
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
 

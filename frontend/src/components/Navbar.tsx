@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CardNav, { type CardNavItem } from './CardNav';
@@ -159,9 +160,11 @@ export default function Navbar() {
       links: user
         ? [
           { label: '← Back to Home', href: '/' },
-          { label: 'My Reservations & Codes', href: '/dashboard' },
-          ...(user.role === 'admin' ? [{ label: 'Admin Control Center', href: '/admin' }] : []),
-          { label: 'Rental Policies', href: '/policies' }
+          { label: '👤 Driver Profile & License', href: '/profile' },
+          { label: '🔑 My Trips & 6-Digit PINs', href: '/dashboard' },
+          ...(user.role === 'admin' ? [{ label: '⚡ Admin Control Center', href: '/admin' }] : []),
+          { label: '📋 Rental Policies & Terms', href: '/policies' },
+          { label: '🚪 Log Out of Account', href: '#logout' }
         ]
         : [
           { label: '← Back to Home', href: '/' },
@@ -177,7 +180,7 @@ export default function Navbar() {
   const cta = user
     ? user.role === 'admin'
       ? { label: 'Admin Center', href: '/admin' }
-      : { label: user.name?.split(' ')[0] ? `${user.name.split(' ')[0]}'s Trips` : 'My Trips', href: '/dashboard' }
+      : { label: 'My Profile', href: '/profile' }
     : { label: 'Sign In', href: '/login' };
 
   return (

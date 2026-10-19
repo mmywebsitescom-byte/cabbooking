@@ -14,13 +14,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const token = localStorage.getItem('driveease_token');
+      const stored = localStorage.getItem('driveease_user');
+      if (token && stored) {
+        return JSON.parse(stored);
+      }
+    } catch {
+      localStorage.removeItem('driveease_user');
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('driveease_token');
     const stored = localStorage.getItem('driveease_user');
-    if (token && stored) {
+    if (token && stored && !user) {
       try {
         setUser(JSON.parse(stored));
       } catch {

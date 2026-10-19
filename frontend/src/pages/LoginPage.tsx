@@ -364,6 +364,95 @@ export default function LoginPage() {
                 </svg>
                 <span>Sign in with Google</span>
               </button>
+
+              {/* Quick Demo Sign-in Helper */}
+              <div style={{
+                marginTop: '0.4rem',
+                padding: '0.75rem',
+                backgroundColor: '#F8F5F1',
+                borderRadius: '12px',
+                border: '1px dashed #D6CEC5'
+              }}>
+                <div style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: '#78716C',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '0.45rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem'
+                }}>
+                  <Zap style={{ width: '0.85rem', height: '0.85rem', color: '#D98200' }} />
+                  <span>Quick Demo Credentials</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('admin@veloce.io');
+                      setPassword('Admin@123');
+                      toast.success('Admin credentials loaded! Click Sign in');
+                    }}
+                    style={{
+                      padding: '0.45rem 0.6rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #E4DDD6',
+                      borderRadius: '8px',
+                      color: '#18191B',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#F5A623';
+                      e.currentTarget.style.backgroundColor = '#FFFDF9';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E4DDD6';
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }}
+                  >
+                    👑 <strong>Admin</strong>
+                    <div style={{ fontSize: '0.68rem', color: '#78716C', fontWeight: 500 }}>admin@veloce.io</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('alex.morgan@veloce.io');
+                      setPassword('Demo@123');
+                      toast.success('Customer credentials loaded! Click Sign in');
+                    }}
+                    style={{
+                      padding: '0.45rem 0.6rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #E4DDD6',
+                      borderRadius: '8px',
+                      color: '#18191B',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#F5A623';
+                      e.currentTarget.style.backgroundColor = '#FFFDF9';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#E4DDD6';
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }}
+                  >
+                    👤 <strong>Driver</strong>
+                    <div style={{ fontSize: '0.68rem', color: '#78716C', fontWeight: 500 }}>alex.morgan@veloce.io</div>
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
 

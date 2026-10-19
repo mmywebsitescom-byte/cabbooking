@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authApi, bookingsApi } from '../lib/api';
+import { LoadingPage } from '../components/UI';
 import toast from 'react-hot-toast';
 import {
   User, Mail, Phone, MapPin, Calendar, ShieldCheck,
@@ -10,7 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user, logout, updateUser } = useAuth();
+  const { user, loading, logout, updateUser } = useAuth();
   const navigate = useNavigate();
 
   // Active sub-tab in profile
@@ -45,6 +46,7 @@ export default function ProfilePage() {
   const [loadingBookings, setLoadingBookings] = useState(false);
 
   useEffect(() => {
+    if (loading) return;
     if (!user) {
       navigate('/login?redirect=/profile');
       return;
@@ -174,6 +176,7 @@ export default function ProfilePage() {
     }
   };
 
+  if (loading) return <LoadingPage />;
   if (!user) return null;
 
   const initials = user.name

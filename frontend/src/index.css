@@ -471,4 +471,34 @@ input[type=range]::-webkit-slider-runnable-track {
   flex-shrink: 0;
 }
 
+/* ================= Hero Ultra-Wide Search Box ================= */
+.hero-search-container-box {
+  max-width: 92rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.hero-search-inner-card {
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 22px;
+  border: 1.5px solid rgba(220, 214, 204, 0.95);
+  padding: 0.55rem 0.85rem;
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.hero-search-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .hero-search-form-grid {
+    grid-template-columns: 1.35fr 1.15fr 1.15fr auto;
+  }
+}
+
 
