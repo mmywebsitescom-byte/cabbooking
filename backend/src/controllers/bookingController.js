@@ -57,8 +57,21 @@ export const createBooking = asyncHandler(async (req, res) => {
   if (pickup >= ret) {
     return res.status(400).json({ success: false, error: 'Return time must be after pickup time' });
   }
-  if (pickup < new Date()) {
-    return res.status(400).json({ success: false, error: 'Pickup time cannot be in the past' });
+  // Disallow previous days: only today and upcoming days are allowed
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  if (pickup < todayStart) {
+    return res.status(400).json({
+      success: false,
+      error: 'Pickup date cannot be a previous day. Only bookings for today and future days are permitted.'
+    });
+  }
+  // Allow 15-minute grace period for clock skew / form completion time
+  if (pickup < new Date(Date.now() - 15 * 60 * 1000)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Pickup time cannot be in the past. Please select an upcoming hour.'
+    });
   }
 
   const car = await Car.findById(carId);
@@ -68,7 +81,10 @@ export const createBooking = asyncHandler(async (req, res) => {
 
   const available = await isCarAvailable(carId, pickup, ret);
   if (!available) {
-    return res.status(409).json({ success: false, error: 'Car is not available for the selected dates' });
+    return res.status(409).json({
+      success: false,
+      error: `All ${car.totalQuantity || 1} unit(s) of ${car.name} are already booked for this time period. Please choose different dates/times.`
+    });
   }
 
   const pricing = calculatePricing(car, pickup, ret);
@@ -103,6 +119,8 @@ export const createBooking = asyncHandler(async (req, res) => {
       amount: pricing.totalAmount,
     },
     status: 'pending',
+    secretCode: Math.floor(100000 + Math.random() * 900000).toString(),
+    handoverStatus: 'awaiting_code_verification',
     specialRequests,
     isDemo: config.demoMode,
   });
@@ -216,6 +234,37 @@ export const confirmCashBooking = asyncHandler(async (req, res) => {
   booking.payment.status = 'pending'; // cash collected at pickup
   await booking.save();
   res.json({ success: true, message: 'Cash booking confirmed', data: booking });
+});
+
+// @POST /api/bookings/:id/verify-code
+// In-person handover: Driver asks customer for 6-digit secret code, enters it, and delivers car
+export const verifySecretCodeAndDeliverCar = asyncHandler(async (req, res) => {
+  const { secretCode } = req.body;
+  const booking = await Booking.findById(req.params.id)
+    .populate('car', 'name brand model images plateNumber')
+    .populate('customer', 'name email phone');
+
+  if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+
+  if (!secretCode || secretCode.toString().trim() !== (booking.secretCode || '').toString().trim()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid 6-Digit Secret Handover Code! Please verify with the customer.'
+    });
+  }
+
+  // Code verified: Mark car as delivered and trip active!
+  booking.handoverStatus = 'code_verified_delivered';
+  booking.status = 'active';
+  booking.deliveredAt = new Date();
+  booking.deliveredBy = req.user?.name || 'Company Hub Driver';
+  await booking.save();
+
+  res.json({
+    success: true,
+    message: '🎉 6-Digit Code Verified! Car successfully delivered to customer. Customer may now begin their trip.',
+    data: booking
+  });
 });
 
 // @GET /api/bookings (Customer - own bookings)
@@ -340,24 +389,207 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
 
 // @GET /api/admin/dashboard
 export const getDashboardStats = asyncHandler(async (req, res) => {
-  const totalBookings = await Booking.countDocuments();
-  const activeBookings = await Booking.countDocuments({ status: { $in: ['confirmed', 'active'] } });
-  const totalCars = await Car.countDocuments({ isActive: true });
-  const revenue = await Booking.aggregate([
-    { $match: { 'payment.status': 'paid' } },
-    { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+  const [
+    totalBookings,
+    confirmedBookings,
+    activeBookings,
+    pendingBookings,
+    completedBookings,
+    cancelledBookings,
+    totalCars,
+    availableCars,
+    revenuePaid,
+    revenuePending,
+    paidPaymentsCount,
+    pendingPaymentsCount,
+    categoryDistribution,
+    recent
+  ] = await Promise.all([
+    Booking.countDocuments(),
+    Booking.countDocuments({ status: 'confirmed' }),
+    Booking.countDocuments({ status: 'active' }),
+    Booking.countDocuments({ status: 'pending' }),
+    Booking.countDocuments({ status: 'completed' }),
+    Booking.countDocuments({ status: 'cancelled' }),
+    Car.countDocuments({ isActive: true }),
+    Car.countDocuments({ isActive: true, isAvailable: true }),
+    Booking.aggregate([
+      { $match: { 'payment.status': 'paid' } },
+      { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+    ]),
+    Booking.aggregate([
+      { $match: { 'payment.status': 'pending' } },
+      { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+    ]),
+    Booking.countDocuments({ 'payment.status': 'paid' }),
+    Booking.countDocuments({ 'payment.status': 'pending' }),
+    Booking.aggregate([
+      { $lookup: { from: 'cars', localField: 'car', foreignField: '_id', as: 'carDetails' } },
+      { $unwind: '$carDetails' },
+      { $group: { _id: '$carDetails.category', count: { $sum: 1 }, revenue: { $sum: '$pricing.totalAmount' } } }
+    ]),
+    Booking.find()
+      .populate('car', 'name brand model images category pricing')
+      .populate('customer', 'name email phone')
+      .sort({ createdAt: -1 })
+      .limit(8)
   ]);
 
-  const recent = await Booking.find().populate('car', 'name brand').populate('customer', 'name email').sort({ createdAt: -1 }).limit(5);
+  // Aggregate 14-day daily trend
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const dailyRevenueTrend = await Booking.aggregate([
+    { $match: { createdAt: { $gte: fourteenDaysAgo } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        bookings: { $sum: 1 },
+        revenue: {
+          $sum: {
+            $cond: [{ $eq: ['$payment.status', 'paid'] }, '$pricing.totalAmount', 0]
+          }
+        }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ]);
+
+  // Popular cars
+  const popularCars = await Booking.aggregate([
+    { $group: { _id: '$car', bookingCount: { $sum: 1 }, totalRevenue: { $sum: '$pricing.totalAmount' } } },
+    { $sort: { bookingCount: -1 } },
+    { $limit: 5 },
+    { $lookup: { from: 'cars', localField: '_id', foreignField: '_id', as: 'carDetails' } },
+    { $unwind: '$carDetails' },
+    {
+      $project: {
+        _id: 1,
+        bookingCount: 1,
+        totalRevenue: 1,
+        name: '$carDetails.name',
+        brand: '$carDetails.brand',
+        category: '$carDetails.category',
+        images: '$carDetails.images',
+        pricing: '$carDetails.pricing'
+      }
+    }
+  ]);
 
   res.json({
     success: true,
     data: {
       totalBookings,
+      confirmedBookings,
       activeBookings,
+      pendingBookings,
+      completedBookings,
+      cancelledBookings,
       totalCars,
-      totalRevenue: revenue[0]?.total || 0,
+      availableCars,
+      maintenanceCars: Math.max(0, totalCars - availableCars),
+      totalRevenue: revenuePaid[0]?.total || 0,
+      pendingPaymentAmount: revenuePending[0]?.total || 0,
+      paidPaymentsCount,
+      pendingPaymentsCount,
+      categoryDistribution,
+      dailyRevenueTrend,
+      popularCars,
       recentBookings: recent,
+    }
+  });
+});
+
+// @POST /api/admin/bookings/:id/approve
+export const approveBooking = asyncHandler(async (req, res) => {
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+  booking.status = 'confirmed';
+  if (!booking.secretCode) {
+    booking.secretCode = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+  await booking.save();
+  await booking.populate('car', 'name brand model images');
+  await booking.populate('customer', 'name email phone');
+  res.json({ success: true, message: 'Booking approved successfully', data: booking });
+});
+
+// @POST /api/admin/bookings/:id/reject
+export const rejectBooking = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+  booking.status = 'cancelled';
+  booking.cancellation = {
+    cancelledAt: new Date(),
+    cancelledBy: 'admin',
+    reason: reason || 'Rejected by Admin',
+    refundAmount: booking.payment.status === 'paid' ? booking.pricing.totalAmount : 0,
+    refundStatus: booking.payment.status === 'paid' ? 'pending' : 'not_applicable'
+  };
+  await booking.save();
+  await booking.populate('car', 'name brand model images');
+  await booking.populate('customer', 'name email phone');
+  res.json({ success: true, message: 'Booking rejected and cancelled', data: booking });
+});
+
+// @POST /api/admin/bookings/:id/refund
+export const refundBooking = asyncHandler(async (req, res) => {
+  const { refundAmount } = req.body;
+  const booking = await Booking.findById(req.params.id);
+  if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+  booking.payment.status = 'refunded';
+  if (!booking.cancellation) {
+    booking.cancellation = {
+      cancelledAt: new Date(),
+      cancelledBy: 'admin',
+      reason: 'Refunded by Admin',
+      refundAmount: Number(refundAmount) || booking.pricing.totalAmount,
+      refundStatus: 'processed'
+    };
+  } else {
+    booking.cancellation.refundStatus = 'processed';
+    if (refundAmount) booking.cancellation.refundAmount = Number(refundAmount);
+  }
+  await booking.save();
+  res.json({ success: true, message: 'Payment refunded successfully', data: booking });
+});
+
+// @GET /api/admin/payments
+export const getAdminPayments = asyncHandler(async (req, res) => {
+  const { status, method } = req.query;
+  const filter = {};
+  if (status && status !== 'all') filter['payment.status'] = status;
+  if (method && method !== 'all') filter['payment.method'] = method;
+
+  const bookings = await Booking.find(filter)
+    .populate('car', 'name brand model images category pricing hubLocation')
+    .populate('customer', 'name email phone')
+    .sort({ createdAt: -1 });
+
+  const [totalPaid, totalPending, totalRefunded] = await Promise.all([
+    Booking.aggregate([
+      { $match: { 'payment.status': 'paid' } },
+      { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+    ]),
+    Booking.aggregate([
+      { $match: { 'payment.status': 'pending' } },
+      { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+    ]),
+    Booking.aggregate([
+      { $match: { 'payment.status': 'refunded' } },
+      { $group: { _id: null, total: { $sum: '$pricing.totalAmount' } } }
+    ])
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      payments: bookings,
+      summary: {
+        totalPaid: totalPaid[0]?.total || 0,
+        totalPending: totalPending[0]?.total || 0,
+        totalRefunded: totalRefunded[0]?.total || 0,
+        totalCount: bookings.length
+      }
     }
   });
 });

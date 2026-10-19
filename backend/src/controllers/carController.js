@@ -2,8 +2,13 @@ import { Car } from '../models/Car.js';
 import { Booking } from '../models/Booking.js';
 import { asyncHandler } from '../middlewares/errorHandler.js';
 
-// Check availability helper
-const isCarAvailable = async (carId, pickupDateTime, returnDateTime, excludeBookingId = null) => {
+// Check availability helper with multi-unit fleet stock support
+const getCarAvailability = async (carId, pickupDateTime, returnDateTime, excludeBookingId = null) => {
+  const car = await Car.findById(carId);
+  if (!car || !car.isActive || !car.isAvailable) {
+    return { available: false, bookedUnits: 0, availableUnits: 0, totalQuantity: car ? car.totalQuantity || 1 : 0 };
+  }
+
   const query = {
     car: carId,
     status: { $in: ['pending', 'confirmed', 'active'] },
@@ -12,18 +17,32 @@ const isCarAvailable = async (carId, pickupDateTime, returnDateTime, excludeBook
     ]
   };
   if (excludeBookingId) query._id = { $ne: excludeBookingId };
-  const conflict = await Booking.findOne(query);
-  return !conflict;
+
+  const bookedUnits = await Booking.countDocuments(query);
+  const totalQuantity = car.totalQuantity || 1;
+  const availableUnits = Math.max(0, totalQuantity - bookedUnits);
+
+  return {
+    available: availableUnits > 0,
+    bookedUnits,
+    availableUnits,
+    totalQuantity
+  };
+};
+
+const isCarAvailable = async (carId, pickupDateTime, returnDateTime, excludeBookingId = null) => {
+  const info = await getCarAvailability(carId, pickupDateTime, returnDateTime, excludeBookingId);
+  return info.available;
 };
 
 // @GET /api/cars
 export const getCars = asyncHandler(async (req, res) => {
-  const { category, transmission, fuelType, minSeats, maxPrice, search, pickupDateTime, returnDateTime } = req.query;
+  const { category, transmission, fuelType, minSeats, maxPrice, search, pickupDateTime, returnDateTime, availableOnly } = req.query;
   const filter = { isActive: true };
 
-  if (category) filter.category = category;
-  if (transmission) filter.transmission = transmission;
-  if (fuelType) filter.fuelType = fuelType;
+  if (category && category !== 'all') filter.category = category;
+  if (transmission && transmission !== 'all') filter.transmission = transmission;
+  if (fuelType && fuelType !== 'all') filter.fuelType = fuelType;
   if (minSeats) filter.seatingCapacity = { $gte: parseInt(minSeats) };
   if (maxPrice) filter['pricing.dailyRate'] = { $lte: parseFloat(maxPrice) };
   if (search) {
@@ -36,14 +55,30 @@ export const getCars = asyncHandler(async (req, res) => {
 
   let cars = await Car.find(filter).sort({ 'pricing.dailyRate': 1 });
 
-  // Filter by availability if dates provided
+  // Annotate with exact availability for requested time period if dates are supplied
   if (pickupDateTime && returnDateTime) {
     const pickup = new Date(pickupDateTime);
     const ret = new Date(returnDateTime);
-    const availabilityChecks = await Promise.all(
-      cars.map(car => isCarAvailable(car._id, pickup, ret))
-    );
-    cars = cars.filter((_, i) => availabilityChecks[i]);
+    if (!isNaN(pickup) && !isNaN(ret) && pickup < ret) {
+      const annotated = await Promise.all(
+        cars.map(async car => {
+          const avail = await getCarAvailability(car._id, pickup, ret);
+          const carObj = car.toObject ? car.toObject() : { ...car };
+          return {
+            ...carObj,
+            isAvailableForPeriod: avail.available,
+            availableUnits: avail.availableUnits,
+            bookedUnits: avail.bookedUnits,
+            totalQuantity: avail.totalQuantity
+          };
+        })
+      );
+      if (availableOnly === 'true') {
+        cars = annotated.filter(c => c.isAvailableForPeriod);
+      } else {
+        cars = annotated;
+      }
+    }
   }
 
   res.json({ success: true, count: cars.length, data: cars });
@@ -55,7 +90,26 @@ export const getCar = asyncHandler(async (req, res) => {
   if (!car || !car.isActive) {
     return res.status(404).json({ success: false, error: 'Car not found' });
   }
-  res.json({ success: true, data: car });
+
+  const { pickupDateTime, returnDateTime } = req.query;
+  let carData = car.toObject ? car.toObject() : { ...car };
+
+  if (pickupDateTime && returnDateTime) {
+    const pickup = new Date(pickupDateTime);
+    const ret = new Date(returnDateTime);
+    if (!isNaN(pickup) && !isNaN(ret) && pickup < ret) {
+      const avail = await getCarAvailability(car._id, pickup, ret);
+      carData = {
+        ...carData,
+        isAvailableForPeriod: avail.available,
+        availableUnits: avail.availableUnits,
+        bookedUnits: avail.bookedUnits,
+        totalQuantity: avail.totalQuantity
+      };
+    }
+  }
+
+  res.json({ success: true, data: carData });
 });
 
 // @GET /api/cars/:id/availability
@@ -69,30 +123,29 @@ export const checkAvailability = asyncHandler(async (req, res) => {
   if (pickup >= ret) {
     return res.status(400).json({ success: false, error: 'Return time must be after pickup time' });
   }
-  const available = await isCarAvailable(req.params.id, pickup, ret);
-  res.json({ success: true, data: { available, carId: req.params.id } });
+  const info = await getCarAvailability(req.params.id, pickup, ret);
+  res.json({ success: true, data: { ...info, carId: req.params.id } });
 });
 
-// @POST /api/cars (Admin)
+// @POST /api/cars (Admin - Add new car model with quantity of vehicles)
 export const createCar = asyncHandler(async (req, res) => {
   const car = await Car.create(req.body);
-  res.status(201).json({ success: true, data: car, message: 'Car added successfully' });
+  res.status(201).json({ success: true, data: car, message: 'Car model added successfully' });
 });
 
-// @PUT /api/cars/:id (Admin)
+// @PUT /api/cars/:id (Admin - Update car model details or quantity)
 export const updateCar = asyncHandler(async (req, res) => {
   const car = await Car.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   if (!car) return res.status(404).json({ success: false, error: 'Car not found' });
   res.json({ success: true, data: car, message: 'Car updated successfully' });
 });
 
-// @DELETE /api/cars/:id (Admin)
+// @DELETE /api/cars/:id (Admin - Delete car model permanently)
 export const deleteCar = asyncHandler(async (req, res) => {
   const car = await Car.findById(req.params.id);
   if (!car) return res.status(404).json({ success: false, error: 'Car not found' });
-  car.isActive = false;
-  await car.save();
-  res.json({ success: true, message: 'Car deactivated successfully' });
+  await Car.findByIdAndDelete(req.params.id);
+  res.json({ success: true, message: 'Car model deleted permanently from fleet' });
 });
 
 // @GET /api/cars/admin/all (Admin)
@@ -101,4 +154,4 @@ export const getAllCarsAdmin = asyncHandler(async (req, res) => {
   res.json({ success: true, count: cars.length, data: cars });
 });
 
-export { isCarAvailable };
+export { isCarAvailable, getCarAvailability };

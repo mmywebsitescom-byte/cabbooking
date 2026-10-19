@@ -1,145 +1,214 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Car, Menu, X, User, LogOut, LayoutDashboard, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import CardNav, { type CardNavItem } from './CardNav';
+import toast from 'react-hot-toast';
+
+// Router-aware link adapter for CardNav
+const RouterLink = ({ href, children, ...props }: any) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  if (href === '#logout') {
+    return (
+      <button
+        type="button"
+        id="navbar-logout-btn"
+        onClick={(e) => {
+          e.preventDefault();
+          logout();
+          toast.success('Logged out successfully');
+          navigate('/login');
+        }}
+        className="w-full text-left bg-transparent border-none cursor-pointer p-0 font-inherit flex items-center justify-between text-rose-400 hover:text-rose-300 transition-colors"
+        {...props}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  if (!href || href.startsWith('http') || href.startsWith('#')) {
+    return (
+      <a href={href} {...props}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link to={href} {...props}>
+      {children}
+    </Link>
+  );
+};
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
+  // Auto-hide when scrolling down, bring back when scrolling up
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
 
-  useEffect(() => setMenuOpen(false), [location]);
+      // Always show at or near the very top of the page
+      if (currentScrollY <= 25) {
+        setVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
 
-  const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/cars', label: 'Browse Cars' },
-    { to: '/policies', label: 'Policies' },
+      // If user has the card navigation menu open, keep it visible
+      if (isNavOpen) {
+        setVisible(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      const diff = currentScrollY - lastScrollY.current;
+      // Scroll down threshold: hide header to maximize content visibility
+      if (diff > 8) {
+        setVisible(false);
+      }
+      // Scroll up threshold: user starts scrolling back, smoothly reveal header
+      else if (diff < -8) {
+        setVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isNavOpen]);
+
+  // Always reveal header on route change
+  useEffect(() => {
+    setVisible(true);
+  }, [location.pathname]);
+
+  // Do not render public consumer navbar on administrative pages
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
+  // VELOCE brand logo
+  const VeloceLogo = (
+    <div className="flex items-center gap-2 group cursor-pointer select-none">
+      <span className="w-7 h-7 rounded-lg bg-[#F5A623] flex items-center justify-center text-[#BBC0CD] font-black text-sm shadow-sm shadow-amber-500/30 group-hover:scale-105 transition-transform">
+        ⚡
+      </span>
+      <span className="font-extrabold text-[15px] tracking-tight text-white font-sans flex items-center gap-1">
+        VELOCE
+        <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623]"></span>
+      </span>
+    </div>
+  );
+
+  // Dynamic Navigation Cards
+  const navItems: CardNavItem[] = [
+    {
+      label: 'Home & Fleet',
+      description: 'Quick return to main hub, 50-car fleet search, and verified terminals.',
+      links: [
+        { label: '← Back to Home', href: '/' },
+        { label: 'Explore All 50 Cars', href: '/cars' },
+        { label: 'Special Offers & Perks', href: '/offers' },
+        { label: 'Downtown Hub Bay 14', href: '/#how-it-works' }
+      ]
+    },
+    {
+      label: 'Fleet & Categories',
+      description: 'Precision performance, track-spec luxury, and electric vehicles.',
+      links: [
+        { label: 'High-Output Luxury & Track', href: '/cars?category=luxury' },
+        { label: 'Pure Electric Fleet (EV)', href: '/cars?category=electric' },
+        { label: 'Executive Sport SUVs', href: '/cars?category=suv' },
+        { label: 'Daily Grand Tourers', href: '/cars?category=sedan' }
+      ]
+    },
+    {
+      label: 'Hub Handover',
+      description: 'Meet company driver at Bay 14 with your 6-digit secret PIN.',
+      links: [
+        { label: '6-Digit PIN Verification', href: '/policies' },
+        { label: 'Customer Refuels Policy', href: '/policies' },
+        { label: 'Downtown Hub Bay 14', href: '/#how-it-works' },
+        { label: 'Zero-Deductible Protection', href: '/policies' }
+      ]
+    },
+    {
+      label: 'Offers & Perks',
+      description: 'Limited-time voucher codes, seasonal multi-day perks, and live alerts.',
+      bgColor: 'linear-gradient(180deg, #262420 0%, #171614 100%)',
+      textColor: '#ffffff',
+      links: [
+        { label: 'View All Offers & Messages', href: '/offers' },
+        { label: 'Weekend 20% Off (WEEKEND20)', href: '/offers' },
+        { label: 'First Drive 15% Off (FIRSTDRIVE)', href: '/offers' },
+        { label: '10% Day Touring (VELOCE10)', href: '/offers' }
+      ]
+    },
+    {
+      label: user ? (user.name || 'Account') : 'Driver Portal',
+      description: user
+        ? `Authorized Driver • ${user.email}`
+        : 'Sign in to access your 6-digit pickup code and manage reservations.',
+      links: user
+        ? [
+          { label: '← Back to Home', href: '/' },
+          { label: 'My Reservations & Codes', href: '/dashboard' },
+          ...(user.role === 'admin' ? [{ label: 'Admin Control Center', href: '/admin' }] : []),
+          { label: 'Rental Policies', href: '/policies' }
+        ]
+        : [
+          { label: '← Back to Home', href: '/' },
+          { label: 'Sign In to Portal', href: '/login' },
+          { label: 'Create Driver Account', href: '/register' },
+          { label: '⚡ Admin Control Center', href: '/admin' },
+          { label: 'Rental Agreement & FAQs', href: '/policies' }
+        ]
+    }
   ];
 
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
-  };
+  // CTA button configuration
+  const cta = user
+    ? user.role === 'admin'
+      ? { label: 'Admin Center', href: '/admin' }
+      : { label: user.name?.split(' ')[0] ? `${user.name.split(' ')[0]}'s Trips` : 'My Trips', href: '/dashboard' }
+    : { label: 'Sign In', href: '/login' };
 
   return (
-    <>
-      <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
-        <div className="container navbar-inner">
-          <Link to="/" className="navbar-logo">
-            <div className="navbar-logo-icon">
-              <Car size={20} />
-            </div>
-            <span className="gold-gradient">DriveEase</span>
-          </Link>
-
-          <div className="navbar-nav" style={{ display: 'flex' }}>
-            {navLinks.map(l => (
-              <Link key={l.to} to={l.to} className={`navbar-link${isActive(l.to) ? ' active' : ''}`}>{l.label}</Link>
-            ))}
-          </div>
-
-          <div className="navbar-actions" style={{ display: 'flex' }}>
-            {user ? (
-              <div style={{ position: 'relative' }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <User size={16} />
-                  <span style={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name.split(' ')[0]}</span>
-                </button>
-                {userMenuOpen && (
-                  <div style={{
-                    position: 'absolute', top: '110%', right: 0, background: 'var(--bg-700)',
-                    border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius)',
-                    padding: '0.5rem', minWidth: 180, zIndex: 200, boxShadow: 'var(--shadow-card)'
-                  }}>
-                    <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.9rem', borderRadius: '8px', fontSize: '0.88rem', color: 'var(--text-secondary)', transition: 'all 0.15s' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                      <LayoutDashboard size={15} /> My Bookings
-                    </Link>
-                    {user.role === 'admin' && (
-                      <Link to="/admin" onClick={() => setUserMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.9rem', borderRadius: '8px', fontSize: '0.88rem', color: 'var(--text-secondary)', transition: 'all 0.15s' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                        <Settings size={15} /> Admin Panel
-                      </Link>
-                    )}
-                    <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0.4rem 0' }} />
-                    <button onClick={() => { logout(); setUserMenuOpen(false); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.9rem', borderRadius: '8px', fontSize: '0.88rem', color: '#ef4444', cursor: 'pointer', background: 'none', border: 'none', width: '100%', transition: 'all 0.15s', fontFamily: 'inherit' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.08)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                      <LogOut size={15} /> Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-ghost btn-sm">Sign In</Link>
-                <Link to="/register" className="btn btn-primary btn-sm">Get Started</Link>
-              </>
-            )}
-          </div>
-
-          <button className="btn btn-ghost btn-sm" style={{ display: 'none' }} onClick={() => setMenuOpen(true)}
-            id="mobile-menu-btn">
-            <Menu size={20} />
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="mobile-menu">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <Link to="/" className="navbar-logo">
-              <div className="navbar-logo-icon"><Car size={20} /></div>
-              <span className="gold-gradient">DriveEase</span>
-            </Link>
-            <button className="btn btn-ghost btn-sm" onClick={() => setMenuOpen(false)}>
-              <X size={20} />
-            </button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
-            {navLinks.map(l => (
-              <Link key={l.to} to={l.to} className={`navbar-link${isActive(l.to) ? ' active' : ''}`}
-                style={{ fontSize: '1.1rem', padding: '0.85rem 1rem' }}>
-                {l.label}
-              </Link>
-            ))}
-            {user && <Link to="/dashboard" className="navbar-link" style={{ fontSize: '1.1rem', padding: '0.85rem 1rem' }}>My Bookings</Link>}
-            {user?.role === 'admin' && <Link to="/admin" className="navbar-link" style={{ fontSize: '1.1rem', padding: '0.85rem 1rem' }}>Admin Panel</Link>}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {user ? (
-              <button className="btn btn-danger" onClick={() => { logout(); setMenuOpen(false); }}>
-                <LogOut size={16} /> Sign Out
-              </button>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-outline">Sign In</Link>
-                <Link to="/register" className="btn btn-primary">Get Started</Link>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          .navbar-nav, .navbar-actions { display: none !important; }
-          #mobile-menu-btn { display: flex !important; }
-        }
-      `}</style>
-    </>
+    <header
+      className={`fixed top-3 inset-x-0 z-[990] px-3 sm:px-6 pointer-events-none transition-all duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${visible ? 'translate-y-0 opacity-100' : '-translate-y-28 opacity-0 pointer-events-none'
+        }`}
+      style={{
+        transitionProperty: 'transform, opacity',
+        transitionDuration: '320ms',
+        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
+      <div className="pointer-events-auto max-w-[940px] mx-auto">
+        <CardNav
+          logo={VeloceLogo}
+          logoHref="/"
+          items={navItems}
+          cta={cta}
+          theme="dark"
+          surface="glass"
+          accentColor="#F5A623"
+          linkComponent={RouterLink}
+          maxWidth={940}
+          cardHeight={195}
+          openOn="click"
+          cardEffect="rise"
+          bounce={0.25}
+          speed={1}
+          onOpenChange={setIsNavOpen}
+        />
+      </div>
+    </header>
   );
 }

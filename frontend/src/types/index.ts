@@ -1,3 +1,5 @@
+export const APP_NAME = 'VELOCE';
+
 export interface User {
   _id: string;
   name: string;
@@ -45,8 +47,13 @@ export interface Car {
   fuelPolicy: string;
   minAgeRequired: number;
   licenceRequired: boolean;
+  totalQuantity?: number;
+  hubLocation?: string;
   isAvailable: boolean;
   isActive: boolean;
+  isAvailableForPeriod?: boolean;
+  availableUnits?: number;
+  bookedUnits?: number;
   totalRentals: number;
   rating: number;
   reviewCount: number;
@@ -109,6 +116,11 @@ export interface Booking {
     refundStatus: 'pending' | 'processed' | 'not_applicable';
   };
   specialRequests?: string;
+  secretCode?: string;
+  handoverStatus?: 'awaiting_code_verification' | 'code_verified_delivered' | 'returned';
+  deliveredAt?: string;
+  deliveredBy?: string;
+  adminNotes?: string;
   isDemo: boolean;
   createdAt: string;
 }
@@ -149,7 +161,31 @@ export interface PublicSettings {
   minAgeRequirement: number;
   licenceRequirements: string;
   securityDepositPolicy: string;
-  selfDriveGuidelines: string;
   razorpayEnabled: boolean;
   cashEnabled: boolean;
 }
+
+export interface AuditLog {
+  _id: string;
+  action: string;
+  category: 'booking' | 'fleet' | 'user' | 'payment' | 'settings' | 'pricing' | 'security';
+  details: string;
+  targetId?: string;
+  performedBy: {
+    userId?: string;
+    name: string;
+    email: string;
+  };
+  ipAddress?: string;
+  createdAt: string;
+}
+
+export interface Coupon {
+  code: string;
+  discountPercent: number;
+  minHours: number;
+  maxDiscount: number;
+  isActive: boolean;
+  description: string;
+}
+

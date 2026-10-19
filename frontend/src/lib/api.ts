@@ -42,6 +42,9 @@ export const carsApi = {
   update: (id: string, data: any) => api.put(`/cars/${id}`, data),
   delete: (id: string) => api.delete(`/cars/${id}`),
   getAllAdmin: () => api.get('/cars/admin/all'),
+  uploadImage: (formData: FormData) => api.post('/cars/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 // --- Bookings ---
@@ -53,23 +56,61 @@ export const bookingsApi = {
   cancel: (id: string, data?: any) => api.post(`/bookings/${id}/cancel`, data),
   createPaymentOrder: (id: string) => api.post(`/bookings/${id}/payment/create-order`),
   verifyPayment: (id: string, data: any) => api.post(`/bookings/${id}/payment/verify`, data),
+  verifyCode: (id: string, secretCode: string) => api.post(`/bookings/${id}/verify-code`, { secretCode }),
 };
 
 // --- Admin ---
 export const adminApi = {
-  getDashboard: () => api.get('/bookings/admin/dashboard'),
+  getDashboard: () => api.get('/admin/dashboard'),
   getAllBookings: (params?: any) => api.get('/admin/bookings', { params }),
   updateBookingStatus: (id: string, data: any) => api.put(`/admin/bookings/${id}/status`, data),
+  approveBooking: (id: string) => api.post(`/admin/bookings/${id}/approve`),
+  rejectBooking: (id: string, data?: any) => api.post(`/admin/bookings/${id}/reject`, data),
+  refundBooking: (id: string, data?: any) => api.post(`/admin/bookings/${id}/refund`, data),
   confirmCash: (id: string) => api.post(`/bookings/${id}/cash-confirm`),
+  getPayments: (params?: any) => api.get('/admin/payments', { params }),
   getAllUsers: () => api.get('/admin/users'),
   updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
+  getUserBookings: (userId: string) => api.get(`/admin/users/${userId}/bookings`),
+  getAuditLogs: () => api.get('/admin/audit-logs'),
+  createAuditLog: (data: any) => api.post('/admin/audit-logs', data),
+  getCoupons: () => api.get('/admin/coupons'),
+  saveCoupons: (coupons: any[]) => api.post('/admin/coupons', { coupons }),
   getSettings: () => api.get('/admin/settings'),
   updateSettings: (settings: any) => api.put('/admin/settings', { settings }),
+  // CMS & Public Site Content
+  getCms: () => api.get('/admin/cms'),
+  updateCms: (cms: any) => api.put('/admin/cms', { cms }),
+  // Customer Reviews
+  getReviews: () => api.get('/admin/reviews'),
+  createReview: (data: any) => api.post('/admin/reviews', data),
+  updateReview: (id: string, data: any) => api.put(`/admin/reviews/${id}`, data),
+  deleteReview: (id: string) => api.delete(`/admin/reviews/${id}`),
+  // Database Backup
+  getBackupStats: () => api.get('/admin/backup/stats'),
+  exportBackup: () => api.get('/admin/backup/export'),
+  // Locations Management
+  getLocations: () => api.get('/admin/locations'),
+  createLocation: (data: any) => api.post('/admin/locations', data),
+  updateLocation: (id: string, data: any) => api.put(`/admin/locations/${id}`, data),
+  deleteLocation: (id: string) => api.delete(`/admin/locations/${id}`),
+};
+
+// --- Locations ---
+export const locationsApi = {
+  getAll: () => api.get('/locations'),
+  getAllAdmin: () => api.get('/admin/locations'),
+  create: (data: any) => api.post('/admin/locations', data),
+  update: (id: string, data: any) => api.put(`/admin/locations/${id}`, data),
+  delete: (id: string) => api.delete(`/admin/locations/${id}`),
 };
 
 // --- Public ---
 export const publicApi = {
   getSettings: () => api.get('/settings/public'),
+  getCms: () => api.get('/settings/cms'),
+  getReviews: () => api.get('/reviews/public'),
+  getLocations: () => api.get('/locations'),
   healthCheck: () => api.get('/health'),
 };
 

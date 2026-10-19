@@ -1,4 +1,4 @@
-import { Car } from '../types';
+import type { Car } from '../types';
 import { Users, Fuel, Settings, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

@@ -1,0 +1,13 @@
+{
+  "name": "swiftcab-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "seed": "npm --prefix backend run seed",
+    "start": "npm --prefix backend run start"
+  }
+}

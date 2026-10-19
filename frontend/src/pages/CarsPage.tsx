@@ -1,181 +1,915 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { carsApi } from '../lib/api';
-import { Car, CarFilters, CarCategory } from '../types';
-import CarCard from '../components/CarCard';
-import { Spinner, EmptyState } from '../components/UI';
-
-const categories: { value: CarCategory | ''; label: string }[] = [
-  { value: '', label: 'All Types' },
-  { value: 'hatchback', label: 'Hatchback' },
-  { value: 'sedan', label: 'Sedan' },
-  { value: 'suv', label: 'SUV' },
-  { value: 'mpv', label: 'MPV' },
-  { value: 'luxury', label: 'Luxury' },
-  { value: 'electric', label: 'Electric' },
-];
+import type { Car } from '../types';
 
 export default function CarsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category') || '';
+
   const [cars, setCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<CarFilters>({
-    category: (searchParams.get('category') as CarCategory) || '',
-    transmission: '',
-    fuelType: '',
-    search: searchParams.get('search') || '',
-    pickupDateTime: searchParams.get('pickupDateTime') || '',
-    returnDateTime: searchParams.get('returnDateTime') || '',
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tariff, setTariff] = useState<'hourly' | 'daily'>('hourly');
+  const [maxPrice, setMaxPrice] = useState(150);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>(categoryParam ? [categoryParam] : []);
+  const [selectedTransmission, setSelectedTransmission] = useState<string>('all');
+  const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState('popular');
+  const [showFilters, setShowFilters] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024;
+    }
+    return true;
   });
 
-  const fetchCars = async (f: CarFilters) => {
-    setLoading(true);
+  // Time Period Availability Check State
+  const getTodayMinDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const rawInitialPickup = searchParams.get('pickupDateTime') || '';
+  const initialPickup = rawInitialPickup && rawInitialPickup < getTodayMinDateTime() ? '' : rawInitialPickup;
+  const initialReturn = searchParams.get('returnDateTime') || '';
+  const [pickupDateTime, setPickupDateTime] = useState(initialPickup);
+  const [returnDateTime, setReturnDateTime] = useState(initialReturn);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
+  const fetchCars = async (pDT?: string, rDT?: string) => {
+    setCheckingAvailability(true);
     try {
       const params: any = {};
-      if (f.category) params.category = f.category;
-      if (f.transmission) params.transmission = f.transmission;
-      if (f.fuelType) params.fuelType = f.fuelType;
-      if (f.search) params.search = f.search;
-      if (f.pickupDateTime) params.pickupDateTime = f.pickupDateTime;
-      if (f.returnDateTime) params.returnDateTime = f.returnDateTime;
+      if (pDT && rDT) {
+        params.pickupDateTime = pDT;
+        params.returnDateTime = rDT;
+      }
       const res = await carsApi.getAll(params);
-      setCars(res.data.data);
+      setCars(res.data.data || []);
     } catch {
-      setCars([]);
+      // keep fallback
     } finally {
       setLoading(false);
+      setCheckingAvailability(false);
     }
   };
 
-  useEffect(() => { fetchCars(filters); }, []);
+  useEffect(() => {
+    fetchCars(pickupDateTime, returnDateTime);
+  }, [pickupDateTime, returnDateTime]);
 
-  const applyFilters = () => {
-    fetchCars(filters);
-    setShowFilters(false);
+  const categoryCounts = cars.reduce((acc: Record<string, number>, car) => {
+    acc[car.category] = (acc[car.category] || 0) + 1;
+    return acc;
+  }, {});
+
+  const fuelCounts = cars.reduce((acc: Record<string, number>, car) => {
+    acc[car.fuelType] = (acc[car.fuelType] || 0) + 1;
+    return acc;
+  }, {});
+
+  const handleClassToggle = (cls: string) => {
+    setSelectedClasses(prev =>
+      prev.includes(cls) ? prev.filter(c => c !== cls) : [...prev, cls]
+    );
   };
 
-  const clearFilters = () => {
-    const cleared: CarFilters = { category: '', transmission: '', fuelType: '', search: '' };
-    setFilters(cleared);
-    fetchCars(cleared);
+  const handleFuelToggle = (fuel: string) => {
+    setSelectedFuels(prev =>
+      prev.includes(fuel) ? prev.filter(f => f !== fuel) : [...prev, fuel]
+    );
   };
 
-  const minDate = new Date().toISOString().slice(0, 16);
-  const hasFilters = filters.category || filters.transmission || filters.fuelType || filters.search || filters.pickupDateTime;
+  const resetFilters = () => {
+    setSearchTerm('');
+    setMaxPrice(150);
+    setSelectedClasses([]);
+    setSelectedTransmission('all');
+    setSelectedFuels([]);
+  };
+
+  const filteredCars = cars.filter(car => {
+    if (searchTerm && !car.name.toLowerCase().includes(searchTerm.toLowerCase()) && !car.brand.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    if (tariff === 'hourly' && car.pricing.hourlyRate > maxPrice) return false;
+    if (tariff === 'daily' && car.pricing.dailyRate > maxPrice * 7) return false;
+    if (selectedClasses.length > 0 && !selectedClasses.includes(car.category)) return false;
+    if (selectedTransmission !== 'all' && car.transmission !== selectedTransmission) return false;
+    if (selectedFuels.length > 0 && !selectedFuels.includes(car.fuelType)) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === 'price-low') return a.pricing.hourlyRate - b.pricing.hourlyRate;
+    if (sortBy === 'price-high') return b.pricing.hourlyRate - a.pricing.hourlyRate;
+    if (sortBy === 'rating') return (b.rating || 5) - (a.rating || 5);
+    return (b.reviewCount || 0) - (a.reviewCount || 0);
+  });
+
+  const activeFilterCount =
+    selectedClasses.length +
+    (selectedTransmission !== 'all' ? 1 : 0) +
+    selectedFuels.length +
+    (searchTerm.trim() ? 1 : 0) +
+    (tariff !== 'hourly' ? 1 : 0) +
+    (maxPrice < 150 ? 1 : 0);
 
   return (
-    <div style={{ paddingTop: 72, minHeight: '100vh' }}>
-      <div className="container" style={{ padding: '3rem 1.5rem' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.2rem)', marginBottom: '0.35rem' }}>Browse Our <span className="gold-gradient">Fleet</span></h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              {loading ? 'Loading...' : `${cars.length} car${cars.length !== 1 ? 's' : ''} available`}
-            </p>
+    <div style={{ backgroundColor: 'var(--surface)', minHeight: '100vh', paddingTop: '5rem' }}>
+      {/* ================= SUB-HEADER BREADCRUMB / FLEET INFO ================= */}
+      <section style={{ backgroundColor: 'var(--surface-container-low)', borderBottom: '1px solid rgba(195, 198, 215, 0.4)', padding: '0.75rem 0' }}>
+        <div style={{ maxWidth: '96rem', margin: '0 auto', padding: '0 1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.82rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)', fontWeight: 600 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>directions_car</span>
+              50 Vehicles in Active Fleet
+            </span>
+            <span style={{ color: 'var(--outline-variant)' }}>•</span>
+            <span style={{ color: 'var(--on-surface)' }}>Rent for Your Exact Time Period</span>
+            <span style={{ color: 'var(--outline-variant)' }}>•</span>
+            <span style={{ color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>local_gas_station</span>
+              Customer Refuels (Fuel Not Included)
+            </span>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            {hasFilters && (
-              <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
-                <X size={15} /> Clear Filters
-              </button>
-            )}
-            <button className="btn btn-outline btn-sm" onClick={() => setShowFilters(!showFilters)}>
-              <SlidersHorizontal size={15} /> Filters
-            </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--on-surface-variant)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#15803d', fontWeight: 600 }}>
+              <span style={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#15803d' }} className="pulse-green"></span>
+              Live Available Now
+            </span>
+            <span style={{ color: 'var(--outline-variant)' }}>|</span>
+            <Link to="/policies" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>verified_user</span>
+              Mandatory Sign-In Policy
+            </Link>
           </div>
         </div>
+      </section>
 
-        {/* Filter Bar */}
-        {showFilters && (
-          <div className="filter-bar" style={{ marginBottom: '2rem' }}>
-            <div className="filter-grid">
-              {/* Search */}
+      {/* ================= MAIN 2-COLUMN LAYOUT ================= */}
+      <main style={{ maxWidth: '96rem', margin: '0 auto', padding: '1.5rem 1.25rem 8rem', minHeight: '100vh' }}>
+        <div
+          className="cars-layout-responsive"
+          style={{
+            gridTemplateColumns: showFilters ? undefined : '1fr',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          
+          {/* ================= LEFT SIDEBAR (FILTER PANEL) ================= */}
+          {showFilters && (
+            <aside className="cars-aside-responsive">
+              <div className="card-veloce" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(195,198,215,0.3)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>tune</span>
+                    <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Filter Fleet</h2>
+                    {activeFilterCount > 0 && (
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'var(--primary)', color: '#ffffff', padding: '0.1rem 0.45rem', borderRadius: 'var(--radius-full)' }}>
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      onClick={resetFilters}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>restart_alt</span>
+                      Reset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowFilters(false)}
+                      title="Minimize Filter Sidebar"
+                      aria-label="Minimize Filter Sidebar"
+                      style={{
+                        background: 'var(--surface-container-high)', border: 'none', borderRadius: '0.5rem',
+                        width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', color: 'var(--on-surface-variant)', transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--surface-container-highest)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>first_page</span>
+                    </button>
+                  </div>
+                </div>
+
+              {/* Model Search */}
               <div>
-                <label className="form-label">Search</label>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '0.4rem' }}>
+                  Model or Manufacturer
+                </label>
                 <div style={{ position: 'relative' }}>
-                  <Search size={15} style={{ position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input className="form-control" style={{ paddingLeft: '2.4rem' }} placeholder="Brand, model..." value={filters.search || ''}
-                    onChange={e => setFilters(p => ({ ...p, search: e.target.value }))} />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="e.g. Porsche, Tesla, M340i..."
+                    style={{
+                      width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '0.75rem',
+                      border: '1px solid rgba(195,198,215,0.6)', backgroundColor: 'var(--surface-container-low)',
+                      fontSize: '0.85rem', color: 'var(--on-surface)', outline: 'none'
+                    }}
+                  />
+                  <span className="material-symbols-outlined" style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.1rem' }}>
+                    search
+                  </span>
                 </div>
               </div>
 
-              {/* Category */}
+              {/* Rental Tariff Toggle */}
               <div>
-                <label className="form-label">Car Type</label>
-                <select className="form-control" value={filters.category || ''} onChange={e => setFilters(p => ({ ...p, category: e.target.value as CarCategory | '' }))}>
-                  {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </select>
+                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '0.4rem' }}>
+                  Rental Tariff
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: 'var(--surface-container-high)', padding: '0.2rem', borderRadius: 'var(--radius-full)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setTariff('hourly')}
+                    style={{
+                      padding: '0.4rem', borderRadius: 'var(--radius-full)', border: 'none',
+                      backgroundColor: tariff === 'hourly' ? 'var(--surface-container-lowest)' : 'transparent',
+                      color: tariff === 'hourly' ? 'var(--primary)' : 'var(--on-surface-variant)',
+                      fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', boxShadow: tariff === 'hourly' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    }}
+                  >
+                    Hourly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTariff('daily')}
+                    style={{
+                      padding: '0.4rem', borderRadius: 'var(--radius-full)', border: 'none',
+                      backgroundColor: tariff === 'daily' ? 'var(--surface-container-lowest)' : 'transparent',
+                      color: tariff === 'daily' ? 'var(--primary)' : 'var(--on-surface-variant)',
+                      fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', boxShadow: tariff === 'daily' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                    }}
+                  >
+                    Daily
+                  </button>
+                </div>
+              </div>
+
+              {/* Price Range Slider */}
+              <div style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)' }}>Max Rate</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--surface-container)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                    ₹{maxPrice}/hr
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="15"
+                  max="150"
+                  step="5"
+                  value={maxPrice}
+                  onChange={e => setMaxPrice(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--outline)', marginTop: '0.2rem' }}>
+                  <span>₹15/hr</span>
+                  <span>₹85/hr</span>
+                  <span>₹150+/hr</span>
+                </div>
+              </div>
+
+              {/* Vehicle Class Checkboxes */}
+              <div style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
+                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>
+                  Vehicle Class
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
+                  {[
+                    { id: 'suv', label: 'Sports SUV', count: categoryCounts['suv'] || 0 },
+                    { id: 'sedan', label: 'Executive Sedan', count: categoryCounts['sedan'] || 0 },
+                    { id: 'electric', label: 'Electric Performance', count: categoryCounts['electric'] || 0 },
+                    { id: 'hatchback', label: 'Sport Hatchback', count: categoryCounts['hatchback'] || 0 },
+                    { id: 'luxury', label: 'Grand Tourer', count: categoryCounts['luxury'] || 0 },
+                  ].map(item => (
+                    <label key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedClasses.includes(item.id)}
+                          onChange={() => handleClassToggle(item.id)}
+                          style={{ accentColor: 'var(--primary)' }}
+                        />
+                        {item.label}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--outline)', fontWeight: 600 }}>{item.count}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
               {/* Transmission */}
-              <div>
-                <label className="form-label">Transmission</label>
-                <select className="form-control" value={filters.transmission || ''} onChange={e => setFilters(p => ({ ...p, transmission: e.target.value as any }))}>
-                  <option value="">Any</option>
-                  <option value="manual">Manual</option>
-                  <option value="automatic">Automatic</option>
-                </select>
+              <div style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
+                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>
+                  Transmission
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {['all', 'automatic', 'manual'].map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setSelectedTransmission(t)}
+                      style={{
+                        padding: '0.3rem 0.8rem', borderRadius: 'var(--radius-full)',
+                        border: selectedTransmission === t ? 'none' : '1px solid var(--outline-variant)',
+                        backgroundColor: selectedTransmission === t ? 'var(--on-surface)' : 'var(--surface)',
+                        color: selectedTransmission === t ? '#ffffff' : 'var(--on-surface-variant)',
+                        fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize'
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Fuel */}
-              <div>
-                <label className="form-label">Fuel Type</label>
-                <select className="form-control" value={filters.fuelType || ''} onChange={e => setFilters(p => ({ ...p, fuelType: e.target.value as any }))}>
-                  <option value="">Any</option>
-                  <option value="petrol">Petrol</option>
-                  <option value="diesel">Diesel</option>
-                  <option value="electric">Electric</option>
-                  <option value="cng">CNG</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
+              {/* Power & Fuel */}
+              <div style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
+                <span style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '0.5rem' }}>
+                  Power &amp; Fuel
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
+                  {[
+                    { id: 'petrol', label: 'Gasoline / Petrol', count: fuelCounts['petrol'] || 0 },
+                    { id: 'electric', label: 'Pure Electric (EV)', count: fuelCounts['electric'] || 0 },
+                    { id: 'hybrid', label: 'Hybrid Electric', count: fuelCounts['hybrid'] || 0 },
+                    { id: 'diesel', label: 'Diesel Turbo', count: fuelCounts['diesel'] || 0 },
+                  ].map(f => (
+                    <label key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedFuels.includes(f.id)}
+                          onChange={() => handleFuelToggle(f.id)}
+                          style={{ accentColor: 'var(--primary)' }}
+                        />
+                        {f.label}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--outline)', fontWeight: 600 }}>{f.count}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {/* Pickup Date */}
-              <div>
-                <label className="form-label">Pickup Date & Time</label>
-                <input type="datetime-local" className="form-control" min={minDate} value={filters.pickupDateTime || ''}
-                  onChange={e => setFilters(p => ({ ...p, pickupDateTime: e.target.value }))} />
-              </div>
-
-              {/* Return Date */}
-              <div>
-                <label className="form-label">Return Date & Time</label>
-                <input type="datetime-local" className="form-control" min={filters.pickupDateTime || minDate} value={filters.returnDateTime || ''}
-                  onChange={e => setFilters(p => ({ ...p, returnDateTime: e.target.value }))} />
-              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem', justifyContent: 'flex-end' }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowFilters(false)}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={applyFilters}>Apply Filters</button>
+            {/* Hub Handover Information Card */}
+            <div style={{
+              background: 'rgba(220, 233, 255, 0.6)', borderRadius: '1rem',
+              padding: '1rem', border: '1px solid rgba(195, 198, 215, 0.4)',
+              display: 'flex', alignItems: 'center', gap: '0.75rem'
+            }}>
+              <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '0.75rem', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>vpn_key</span>
+              </div>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: '0.88rem', margin: 0 }}>Driver Handover at Hub</p>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.78rem', margin: 0 }}>Driver verifies your 6-digit secret code at our hub &amp; hands over keys.</p>
+              </div>
             </div>
-          </div>
+          </aside>
         )}
 
-        {/* Category Pills */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-          {categories.map(c => (
-            <button key={c.value} onClick={() => { const f = { ...filters, category: c.value }; setFilters(f); fetchCars(f); }}
-              className={`btn btn-sm ${filters.category === c.value ? 'btn-primary' : 'btn-ghost'}`}>
-              {c.label}
-            </button>
-          ))}
+          {/* ================= RIGHT COLUMN (TOOLBAR + CATALOG GRID) ================= */}
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            
+            {/* Real-Time Rental Timing & Booking Conflict Checker Bar */}
+            <div className="card-veloce" style={{
+              padding: '1.25rem 1.5rem',
+              background: pickupDateTime && returnDateTime ? 'rgba(238, 242, 255, 0.85)' : 'var(--surface-container-low)',
+              border: pickupDateTime && returnDateTime ? '1.5px solid var(--primary)' : '1px solid rgba(195,198,215,0.4)',
+              borderRadius: '1.25rem'
+            }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.4rem' }}>calendar_clock</span>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0 }}>Select Rental Timing to Check Live Availability</h3>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--on-surface-variant)', margin: '0.1rem 0 0' }}>
+                      Choose your rental start &amp; return times. We will instantly check if other bookings exist and show which cars are free.
+                    </p>
+                  </div>
+                </div>
+
+                {pickupDateTime && returnDateTime && (
+                  <button
+                    type="button"
+                    onClick={() => { setPickupDateTime(''); setReturnDateTime(''); }}
+                    style={{
+                      background: 'none', border: 'none', color: '#ef4444',
+                      fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem'
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '0.95rem' }}>close</span>
+                    Clear Timing
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem', alignItems: 'center' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--outline)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    Pickup Date &amp; Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={pickupDateTime}
+                    min={getTodayMinDateTime()}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val && val < getTodayMinDateTime()) {
+                        setPickupDateTime(getTodayMinDateTime());
+                        return;
+                      }
+                      setPickupDateTime(val);
+                    }}
+                    style={{
+                      width: '100%', padding: '0.55rem 0.75rem', borderRadius: '0.65rem',
+                      border: '1px solid rgba(195,198,215,0.6)', backgroundColor: '#ffffff',
+                      fontSize: '0.85rem', color: 'var(--on-surface)', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--outline)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    Return Date &amp; Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={returnDateTime}
+                    min={pickupDateTime || getTodayMinDateTime()}
+                    onChange={e => setReturnDateTime(e.target.value)}
+                    style={{
+                      width: '100%', padding: '0.55rem 0.75rem', borderRadius: '0.65rem',
+                      border: '1px solid rgba(195,198,215,0.6)', backgroundColor: '#ffffff',
+                      fontSize: '0.85rem', color: 'var(--on-surface)', outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Quick Presets */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--outline)', fontWeight: 700, marginBottom: '0.25rem' }}>
+                    Quick Timing Presets
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const now = new Date();
+                        const p = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+                        const r = new Date(p.getTime() + 8 * 60 * 60 * 1000);
+                        setPickupDateTime(p.toISOString().slice(0, 16));
+                        setReturnDateTime(r.toISOString().slice(0, 16));
+                      }}
+                      style={{ padding: '0.35rem 0.65rem', borderRadius: '0.45rem', border: '1px solid rgba(195,198,215,0.6)', background: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Today 8h
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const now = new Date();
+                        const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 10, 0);
+                        const returnDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 10, 0);
+                        setPickupDateTime(tomorrow.toISOString().slice(0, 16));
+                        setReturnDateTime(returnDay.toISOString().slice(0, 16));
+                      }}
+                      style={{ padding: '0.35rem 0.65rem', borderRadius: '0.45rem', border: '1px solid rgba(195,198,215,0.6)', background: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Tomorrow 24h
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const now = new Date();
+                        const weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (6 - now.getDay()), 9, 0);
+                        const weekendEnd = new Date(weekendStart.getTime() + 48 * 60 * 60 * 1000);
+                        setPickupDateTime(weekendStart.toISOString().slice(0, 16));
+                        setReturnDateTime(weekendEnd.toISOString().slice(0, 16));
+                      }}
+                      style={{ padding: '0.35rem 0.65rem', borderRadius: '0.45rem', border: '1px solid rgba(195,198,215,0.6)', background: '#ffffff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      Weekend
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {pickupDateTime && returnDateTime && (
+                <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(195,198,215,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem' }}>
+                  <span style={{ color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>event_available</span>
+                    Checking booking overlap for selected dates. Cars with zero available units will show as Unavailable.
+                  </span>
+                  {checkingAvailability && (
+                    <span style={{ color: 'var(--outline)', fontSize: '0.78rem' }}>Updating availability...</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Top Control Bar */}
+            <div className="card-veloce" style={{ padding: '1rem 1.25rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <h1 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0 }}>Available Fleet</h1>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                    padding: '0.15rem 0.6rem', borderRadius: 'var(--radius-full)',
+                    backgroundColor: '#dcfce7', color: '#15803d', fontWeight: 700, fontSize: '0.72rem'
+                  }}>
+                    <span style={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: '#15803d' }}></span>
+                    Live Inventory
+                  </span>
+                </div>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.85rem', margin: '0.2rem 0 0' }}>
+                  Showing {filteredCars.length} of {cars.length} Fleet Vehicles • Rent by Hour or Day • ⛽ Customer Refuels (Fuel Not Included)
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {/* One button to Open and Close the Left Side Filter Box */}
+                <button
+                  type="button"
+                  id="toggle-filter-box-btn"
+                  onClick={() => setShowFilters(!showFilters)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.65rem',
+                    border: showFilters ? '1.5px solid rgba(195, 198, 215, 0.7)' : '1.5px solid var(--primary)',
+                    backgroundColor: showFilters ? 'var(--surface-container-low)' : 'var(--primary)',
+                    color: showFilters ? 'var(--on-surface)' : '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    boxShadow: showFilters ? '0 2px 6px rgba(11,28,48,0.06)' : '0 4px 14px rgba(0, 74, 198, 0.3)',
+                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                  }}
+                  title={showFilters ? 'Minimize Left Filter Box' : 'Open Left Filter Box'}
+                  aria-label={showFilters ? 'Minimize Left Filter Box' : 'Open Left Filter Box'}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
+                    {showFilters ? 'first_page' : 'tune'}
+                  </span>
+                  <span>{showFilters ? 'Minimize Filters' : 'Open Filters'}</span>
+                  {activeFilterCount > 0 && (
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      backgroundColor: showFilters ? 'var(--primary)' : '#ffffff',
+                      color: showFilters ? '#ffffff' : 'var(--primary)',
+                      padding: '0.1rem 0.5rem',
+                      borderRadius: 'var(--radius-full)'
+                    }}>
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Sort by */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <label htmlFor="fleet-sort-select" style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', fontWeight: 600 }}>Sort by:</label>
+                  <select
+                    id="fleet-sort-select"
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    style={{
+                      backgroundColor: 'var(--surface-container-low)', color: 'var(--on-surface)',
+                      fontWeight: 600, fontSize: '0.85rem', padding: '0.45rem 0.8rem',
+                      borderRadius: '0.5rem', border: '1px solid rgba(195,198,215,0.6)', outline: 'none', cursor: 'pointer'
+                    }}
+                  >
+                    <option value="popular">Most Popular</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Top Rated</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Filter Strip when Sidebar is Minimized */}
+            {!showFilters && (
+              <div
+                className="card-veloce"
+                style={{
+                  padding: '0.75rem 1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
+                  overflowX: 'auto',
+                  border: '1px dashed rgba(0, 74, 198, 0.4)',
+                  backgroundColor: 'rgba(238, 242, 255, 0.5)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                  <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>filter_list</span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--on-surface)' }}>Quick Filter:</span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'nowrap', overflowX: 'auto', padding: '0.2rem 0' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClasses([])}
+                    style={{
+                      padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)',
+                      border: '1px solid', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+                      borderColor: selectedClasses.length === 0 ? 'var(--primary)' : 'rgba(195,198,215,0.6)',
+                      backgroundColor: selectedClasses.length === 0 ? 'var(--primary)' : '#ffffff',
+                      color: selectedClasses.length === 0 ? '#ffffff' : 'var(--on-surface-variant)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    All Fleet ({cars.length})
+                  </button>
+                  {['SUV', 'Sedan', 'Luxury', 'Sports', 'EV', 'Convertible'].map(cls => {
+                    const isSelected = selectedClasses.includes(cls);
+                    const count = categoryCounts[cls] || 0;
+                    return (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => handleClassToggle(cls)}
+                        style={{
+                          padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)',
+                          border: '1px solid', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                          borderColor: isSelected ? 'var(--primary)' : 'rgba(195,198,215,0.6)',
+                          backgroundColor: isSelected ? 'var(--primary)' : '#ffffff',
+                          color: isSelected ? '#ffffff' : 'var(--on-surface)',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {cls} {count > 0 && `(${count})`}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(true)}
+                  style={{
+                    border: 'none', background: 'none', color: 'var(--primary)',
+                    fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap', flexShrink: 0
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>tune</span>
+                  More Filters
+                </button>
+              </div>
+            )}
+
+            {/* Fleet Grid */}
+            {filteredCars.length === 0 ? (
+              <div className="card-veloce" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--outline)', marginBottom: '1rem' }}>no_crash</span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No matching vehicles found</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Try clearing some of your filters to view more fleet vehicles.</p>
+                <button onClick={resetFilters} className="btn-primary">Reset All Filters</button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '1.25rem' }}>
+                {filteredCars.map(car => {
+                  const isConflict = pickupDateTime && returnDateTime && car.isAvailableForPeriod === false;
+                  const availableUnits = car.availableUnits !== undefined ? car.availableUnits : car.totalQuantity || 1;
+                  const totalUnits = car.totalQuantity || 1;
+
+                  return (
+                    <article
+                      key={car._id}
+                      className="card-veloce"
+                      style={{
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        borderRadius: '1rem',
+                        opacity: isConflict ? 0.72 : 1,
+                        border: isConflict ? '1.5px solid #ef4444' : undefined,
+                        boxShadow: isConflict ? 'none' : undefined
+                      }}
+                    >
+                      <div>
+                        {/* Visual Header */}
+                        <div style={{ position: 'relative', height: '9.5rem', backgroundColor: 'var(--surface-container-low)', overflow: 'hidden' }}>
+                          {/* Availability Badge */}
+                          {isConflict ? (
+                            <span style={{
+                              position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10,
+                              padding: '0.2rem 0.55rem', borderRadius: 'var(--radius-full)',
+                              backgroundColor: '#fee2e2', color: '#b91c1c', fontWeight: 800, fontSize: '0.68rem',
+                              display: 'flex', alignItems: 'center', gap: '0.25rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}>
+                              <span style={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: '#b91c1c' }}></span>
+                              Fully Booked for this Time
+                            </span>
+                          ) : (
+                            <span style={{
+                              position: 'absolute', top: '0.5rem', left: '0.5rem', zIndex: 10,
+                              padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)',
+                              backgroundColor: '#dcfce7', color: '#15803d', fontWeight: 700, fontSize: '0.68rem',
+                              display: 'flex', alignItems: 'center', gap: '0.25rem'
+                            }}>
+                              <span style={{ width: '0.35rem', height: '0.35rem', borderRadius: '50%', backgroundColor: '#15803d' }}></span>
+                              {pickupDateTime && returnDateTime
+                                ? `${availableUnits} of ${totalUnits} Free`
+                                : `${totalUnits} Units in Fleet`}
+                            </span>
+                          )}
+
+                          <img
+                            src={car.images && car.images[0]}
+                            alt={car.name}
+                            style={{
+                              width: '100%', height: '100%', objectFit: 'cover',
+                              transition: 'transform 0.4s ease',
+                              filter: isConflict ? 'grayscale(40%)' : 'none'
+                            }}
+                            onMouseEnter={e => !isConflict && (e.currentTarget.style.transform = 'scale(1.05)')}
+                            onMouseLeave={e => !isConflict && (e.currentTarget.style.transform = 'scale(1)')}
+                          />
+
+                          <div style={{
+                            position: 'absolute', bottom: '0.4rem', left: '0.5rem',
+                            backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)',
+                            padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.68rem',
+                            fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem', color: 'var(--on-surface)'
+                          }}>
+                            <span style={{ color: '#f59e0b' }}>★</span> {car.rating || 4.95} ({car.reviewCount || 40})
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ padding: '0.85rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.15rem' }}>
+                            <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--primary)', fontWeight: 700 }}>
+                              {car.category}
+                            </span>
+                            <span style={{ fontSize: '0.68rem', color: 'var(--outline)', fontWeight: 600 }}>
+                              📦 {totalUnits} in Fleet
+                            </span>
+                          </div>
+
+                          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0.1rem 0 0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {car.name}
+                          </h3>
+
+                          {/* Hub Location */}
+                          <div style={{ fontSize: '0.72rem', color: 'var(--on-surface-variant)', marginBottom: '0.45rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>location_on</span>
+                            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {car.hubLocation || 'Main Downtown Car Hub'}
+                            </span>
+                          </div>
+
+                          {/* 3 Spec items */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.3rem', marginBottom: '0.4rem' }}>
+                            <div style={{ background: 'var(--surface-container-low)', padding: '0.3rem 0.2rem', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>speed</span>
+                              <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: 600, marginTop: '0.05rem' }}>{car.transmission}</span>
+                            </div>
+                            <div style={{ background: 'var(--surface-container-low)', padding: '0.3rem 0.2rem', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>airline_seat_recline_normal</span>
+                              <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: 600, marginTop: '0.05rem' }}>{car.seatingCapacity} Seats</span>
+                            </div>
+                            <div style={{ background: 'var(--surface-container-low)', padding: '0.3rem 0.2rem', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>
+                                {car.fuelType === 'electric' ? 'electric_bolt' : 'local_gas_station'}
+                              </span>
+                              <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: 600, marginTop: '0.05rem' }}>
+                                {car.fuelType === 'electric' ? 'EV' : 'Gas'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Customer Refuels Notice */}
+                          <div style={{
+                            padding: '0.25rem 0.45rem', marginTop: '0.35rem',
+                            borderRadius: '0.4rem', backgroundColor: '#fef3c7',
+                            border: '1px solid #fde68a', fontSize: '0.68rem',
+                            color: '#92400e', fontWeight: 600,
+                            display: 'flex', alignItems: 'center', gap: '0.25rem'
+                          }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }}>local_gas_station</span>
+                            <span>Fuel Not Included • Customer Refuels</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Price & Action Footer */}
+                      <div style={{ padding: '0.75rem 0.85rem 0.85rem', borderTop: '1px solid rgba(195,198,215,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
+                            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.25rem', color: 'var(--on-surface)' }}>
+                              ₹{car.pricing?.hourlyRate?.toLocaleString('en-IN')}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>/hr</span>
+                          </div>
+                          <span style={{ fontSize: '0.7rem', color: 'var(--outline)' }}>
+                            ₹{car.pricing?.dailyRate?.toLocaleString('en-IN')} / day
+                          </span>
+                        </div>
+
+                        {isConflict ? (
+                          <button
+                            type="button"
+                            disabled
+                            style={{
+                              padding: '0.45rem 0.75rem', fontSize: '0.75rem',
+                              backgroundColor: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5',
+                              borderRadius: '0.5rem', fontWeight: 700, cursor: 'not-allowed'
+                            }}
+                          >
+                            Unavailable
+                          </button>
+                        ) : (
+                          <Link
+                            to={`/cars/${car._id}${pickupDateTime && returnDateTime ? `?pickupDateTime=${encodeURIComponent(pickupDateTime)}&returnDateTime=${encodeURIComponent(returnDateTime)}` : ''}`}
+                            className="btn-primary"
+                            style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem', gap: '0.25rem' }}
+                          >
+                            <span>Details &amp; Book</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '0.95rem' }}>arrow_forward</span>
+                          </Link>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ================= COMPANY CAR HUB & DRIVER HANDOVER NETWORK BANNER ================= */}
+            <div style={{
+              backgroundColor: 'var(--surface-container-low)', border: '1px solid rgba(195,198,215,0.4)',
+              borderRadius: '1.25rem', padding: '1.75rem', position: 'relative', overflow: 'hidden',
+              display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', zIndex: 10, maxWidth: '40rem' }}>
+                <div style={{
+                  width: '3.2rem', height: '3.2rem', borderRadius: '1rem',
+                  backgroundColor: 'var(--primary)', color: '#ffffff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.8rem' }}>car_repair</span>
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <span style={{ padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)', background: 'var(--secondary-fixed)', color: 'var(--on-secondary-fixed)', fontSize: '0.72rem', fontWeight: 700 }}>
+                      Company Car Hub Handover
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>In-Person Driver Handover</span>
+                  </div>
+                  <h4 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0 0 0.35rem' }}>
+                    Main Downtown Car Hub &amp; Express Offices
+                  </h4>
+                  <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.88rem', lineHeight: 1.5, margin: 0 }}>
+                    Visit our company car hub or central office at your reserved time. Meet the company driver, present your 6-digit secret booking code, and receive your vehicle keys in under 30 seconds. Customer provides fuel for their rental.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ zIndex: 10 }}>
+                <Link
+                  to="/policies"
+                  className="btn-secondary"
+                  style={{
+                    backgroundColor: 'var(--on-surface)', color: '#ffffff',
+                    border: 'none', padding: '0.75rem 1.4rem', fontWeight: 700, fontSize: '0.9rem',
+                    textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>policy</span>
+                  <span>View Handover Policy</span>
+                </Link>
+              </div>
+            </div>
+
+          </section>
         </div>
-
-        {/* Results */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '5rem' }}><Spinner size={48} /></div>
-        ) : cars.length === 0 ? (
-          <EmptyState icon="🚗" title="No cars found" description="Try adjusting your filters or dates." action={<button className="btn btn-outline" onClick={clearFilters}>Clear Filters</button>} />
-        ) : (
-          <div className="grid-cars">
-            {cars.map(car => <CarCard key={car._id} car={car} />)}
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 }

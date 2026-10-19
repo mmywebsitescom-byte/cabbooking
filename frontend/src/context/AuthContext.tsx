@@ -1,12 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import type { User } from '../types';
 import { authApi } from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (data: any) => Promise<User>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('driveease_token', userData.token!);
     localStorage.setItem('driveease_user', JSON.stringify(userData));
     setUser(userData);
+    return userData;
   };
 
   const register = async (data: any) => {
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('driveease_token', userData.token!);
     localStorage.setItem('driveease_user', JSON.stringify(userData));
     setUser(userData);
+    return userData;
   };
 
   const logout = () => {

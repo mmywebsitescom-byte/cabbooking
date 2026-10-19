@@ -4,6 +4,12 @@ const bookingSchema = new mongoose.Schema({
   bookingId: {
     type: String,
     unique: true,
+    default: () => {
+      const prefix = 'DE';
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+      return `${prefix}${timestamp}${random}`;
+    },
     required: true,
   },
   customer: {
@@ -93,19 +99,37 @@ const bookingSchema = new mongoose.Schema({
     }
   },
 
+  // 6-Digit Secret Handover Code
+  secretCode: {
+    type: String,
+    default: () => Math.floor(100000 + Math.random() * 900000).toString(),
+    required: true,
+  },
+  // Handover status
+  handoverStatus: {
+    type: String,
+    enum: ['awaiting_code_verification', 'code_verified_delivered', 'returned'],
+    default: 'awaiting_code_verification'
+  },
+  deliveredAt: Date,
+  deliveredBy: String,
+
   specialRequests: String,
   adminNotes: String,
   isDemo: { type: Boolean, default: false },
 
 }, { timestamps: true });
 
-// Generate booking ID before save
+// Generate booking ID and secret code before save
 bookingSchema.pre('save', function (next) {
   if (!this.bookingId) {
     const prefix = 'DE';
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 5).toUpperCase();
     this.bookingId = `${prefix}${timestamp}${random}`;
+  }
+  if (!this.secretCode) {
+    this.secretCode = Math.floor(100000 + Math.random() * 900000).toString();
   }
   next();
 });

@@ -26,14 +26,18 @@ const carSchema = new mongoose.Schema({
   features: [{ type: String }],
   description: { type: String, trim: true },
 
-  plateNumber: { type: String, required: true, unique: true, uppercase: true },
+  // Fleet Quantity: Admin specifies how many cars of this same model are in fleet
+  totalQuantity: { type: Number, default: 1, min: 1 },
+  hubLocation: { type: String, default: 'Main Downtown Car Hub - 4th Street', trim: true },
+
+  plateNumber: { type: String, default: '', uppercase: true },
   color: { type: String, trim: true },
   mileage: { type: Number }, // km per litre
 
   fuelPolicy: {
     type: String,
-    enum: ['full-to-full', 'full-to-empty', 'same-to-same'],
-    default: 'full-to-full'
+    enum: ['full-to-full', 'full-to-empty', 'same-to-same', 'customer-refuels', 'not-included'],
+    default: 'customer-refuels'
   },
   minAgeRequired: { type: Number, default: 21 },
   licenceRequired: { type: Boolean, default: true },

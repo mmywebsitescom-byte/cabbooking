@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createBooking, getMyBookings, getBooking, getBookingByBookingId,
   cancelBooking, createPaymentOrder, verifyPayment, confirmCashBooking,
+  verifySecretCodeAndDeliverCar,
   getAllBookings, updateBookingStatus, getDashboardStats
 } from '../controllers/bookingController.js';
 import { protect, adminOnly } from '../middlewares/auth.js';
@@ -16,6 +17,7 @@ router.get('/:id', protect, getBooking);
 router.post('/:id/cancel', protect, cancelBooking);
 router.post('/:id/payment/create-order', protect, createPaymentOrder);
 router.post('/:id/payment/verify', protect, verifyPayment);
+router.post('/:id/verify-code', protect, verifySecretCodeAndDeliverCar);
 
 // Admin
 router.get('/', protect, adminOnly, getAllBookings);

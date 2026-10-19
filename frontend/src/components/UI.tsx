@@ -1,4 +1,4 @@
-import { BookingStatus, PaymentStatus } from '../types';
+import type { BookingStatus, PaymentStatus } from '../types';
 
 const statusConfig: Record<BookingStatus, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'badge-warning' },
