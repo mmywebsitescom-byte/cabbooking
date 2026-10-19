@@ -72,7 +72,8 @@ export default function Navbar() {
       location.pathname.startsWith('/account') ||
       location.pathname.startsWith('/dashboard') ||
       location.pathname.startsWith('/login') ||
-      location.pathname.startsWith('/register');
+      location.pathname.startsWith('/register') ||
+      location.pathname.startsWith('/booking');
 
     if (isAlwaysVisiblePage) {
       setVisible(true);

@@ -239,7 +239,7 @@ export default function BookingPage() {
   return (
     <div className="bg-[#FFFDEB] text-[#1E2024] min-h-screen flex flex-col font-sans" style={{ paddingTop: '6.5rem', paddingBottom: '7rem' }}>
       {/* STEP PROGRESS INDICATOR STRIP */}
-      <section className="bg-[#FAF7E8]/95 border-b border-[#E8DBB3] py-3.5 sticky top-[68px] z-30 backdrop-blur-md shadow-sm">
+      <section className="bg-[#FAF7E8] border-b border-[#E8DBB3] py-4 w-full shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6D7179]">
             <span className="material-symbols-outlined text-[#CE2626] text-[20px]">lock</span>
