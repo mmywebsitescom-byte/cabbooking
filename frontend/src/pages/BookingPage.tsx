@@ -237,52 +237,70 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="bg-[#FFFDEB] text-[#1E2024] min-h-screen flex flex-col font-sans" style={{ paddingTop: '6.5rem', paddingBottom: '7rem' }}>
-      {/* STEP PROGRESS INDICATOR STRIP */}
-      <section className="bg-[#FAF7E8] border-b border-[#E8DBB3] py-4 w-full shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6D7179]">
-            <span className="material-symbols-outlined text-[#CE2626] text-[20px]">lock</span>
-            <span>
-              Reservation Checkout Session • Vehicle Reserved (<strong className="text-[#CE2626] font-bold">{formatTimer(timeLeft)}</strong> remaining)
-            </span>
+    <div className="bg-[#FFFDEB] text-[#1E2024] min-h-screen flex flex-col font-sans" style={{ paddingTop: '5.5rem', paddingBottom: '7rem' }}>
+      {/* MAIN CANVAS: 2-COLUMN SPLIT DESKTOP LAYOUT */}
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        {/* CHECKOUT STEP & SESSION STATUS CARD */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E8DBB3] px-5 py-4 shadow-sm mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Left: Active Reservation Session Timer */}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFF8ED] border border-[#FDE68A] text-[#B45309]">
+              <span className="w-2 h-2 rounded-full bg-[#CE2626] animate-pulse"></span>
+              <span className="material-symbols-outlined text-[#CE2626] text-[18px]">lock</span>
+              <span className="text-xs font-bold tracking-wide text-[#1E2024]">Vehicle Held for You</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-[#6D7179]">
+              <span>Expires in</span>
+              <span className="font-mono text-xs font-bold text-[#CE2626] bg-[#FFECEC] px-2 py-0.5 rounded-md border border-[#FFD5D5]">
+                {formatTimer(timeLeft)}
+              </span>
+            </div>
           </div>
 
-          {/* Progress Steps Cluster - Fully Interactive */}
-          <div className="flex items-center gap-3">
-            {/* Step 1: Vehicle & Dates (Completed) */}
-            <Link to={`/cars/${car._id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity no-underline text-inherit">
-              <div className="w-6 h-6 rounded-full bg-[#CE2626] text-white flex items-center justify-center text-xs font-bold shadow-sm">
-                <span className="material-symbols-outlined text-[15px]">check</span>
+          {/* Right: Step Indicator */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+            {/* Step 1: Vehicle & Dates */}
+            <Link
+              to={`/cars/${car._id}`}
+              className="flex items-center gap-2 px-2.5 py-1 rounded-xl hover:bg-[#FAF6F1] transition-colors no-underline text-inherit"
+            >
+              <div className="w-6 h-6 rounded-full bg-[#1E2024] text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                <span className="material-symbols-outlined text-[15px] text-[#4ADE80]">check</span>
               </div>
-              <span className="text-xs font-bold text-[#1E2024]">Vehicle &amp; Dates</span>
+              <span className="text-xs font-bold text-[#1E2024]">1. Vehicle &amp; Dates</span>
             </Link>
-            <div className="w-8 h-px bg-[#CE2626]"></div>
+
+            <div className="w-6 sm:w-8 h-0.5 bg-[#1E2024]/20 hidden sm:block"></div>
 
             {/* Step 2: Verification & Protection */}
             <button
               type="button"
               onClick={() => setCurrentStep(2)}
-              className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 text-left"
+              className={`flex items-center gap-2 px-2.5 py-1 rounded-xl cursor-pointer bg-transparent border-none transition-colors ${
+                currentStep === 2 ? 'bg-[#FFECEC]/70' : 'hover:bg-[#FAF6F1]'
+              }`}
             >
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-xs ${
                 currentStep === 2
-                  ? 'bg-[#CE2626] text-white ring-4 ring-[#FFDEDE]'
+                  ? 'bg-[#CE2626] text-white ring-3 ring-[#CE2626]/20'
+                  : currentStep === 3
+                  ? 'bg-[#1E2024] text-white'
                   : 'bg-[#E8DBB3] text-[#18191B]'
               }`}>
                 {currentStep === 3 ? (
-                  <span className="material-symbols-outlined text-[15px]">check</span>
+                  <span className="material-symbols-outlined text-[15px] text-[#4ADE80]">check</span>
                 ) : (
                   '2'
                 )}
               </div>
               <span className={`text-xs font-bold ${currentStep === 2 ? 'text-[#CE2626]' : 'text-[#6D7179]'}`}>
-                Verification &amp; Protection
+                2. Verification &amp; Protection
               </span>
             </button>
-            <div className={`w-8 h-px ${currentStep === 3 ? 'bg-[#CE2626]' : 'bg-[#E8DBB3]'}`}></div>
 
-            {/* Step 3: Payment & Secret Code Handover */}
+            <div className={`w-6 sm:w-8 h-0.5 hidden sm:block ${currentStep === 3 ? 'bg-[#1E2024]/20' : 'bg-[#E8DBB3]'}`}></div>
+
+            {/* Step 3: Payment & Secret Code */}
             <button
               type="button"
               onClick={() => {
@@ -297,25 +315,24 @@ export default function BookingPage() {
                 }
                 setCurrentStep(3);
               }}
-              className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0 text-left"
+              className={`flex items-center gap-2 px-2.5 py-1 rounded-xl cursor-pointer bg-transparent border-none transition-colors ${
+                currentStep === 3 ? 'bg-[#FFECEC]/70' : 'hover:bg-[#FAF6F1]'
+              }`}
             >
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-xs ${
                 currentStep === 3
-                  ? 'bg-[#CE2626] text-white ring-4 ring-[#FFDEDE]'
+                  ? 'bg-[#CE2626] text-white ring-3 ring-[#CE2626]/20'
                   : 'border border-[#E8DBB3] bg-white text-[#8C877E]'
               }`}>
                 3
               </div>
               <span className={`text-xs font-bold ${currentStep === 3 ? 'text-[#CE2626]' : 'text-[#8C877E]'}`}>
-                Payment &amp; Secret Code
+                3. Payment &amp; Secret Code
               </span>
             </button>
           </div>
         </div>
-      </section>
 
-      {/* MAIN CANVAS: 2-COLUMN SPLIT DESKTOP LAYOUT */}
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* LEFT COLUMN: Primary Checkout Tasks (8/12 cols) */}
           <div className="lg:col-span-7 xl:col-span-8 min-w-0 flex flex-col gap-6">
