@@ -95,6 +95,23 @@ export default function HomePage() {
 
   const [carClass, setCarClass] = useState('All');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [scrollPercent, setScrollPercent] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Dynamic Scroll Progress and Floating Hero Shortcut Tracker
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const totalH = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = totalH > 0 ? Math.min(100, Math.max(0, (scrollY / totalH) * 100)) : 0;
+      setScrollPercent(pct);
+      setShowScrollTop(scrollY > 420);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Load dynamic pickup locations from backend (admin manageable)
   useEffect(() => {
@@ -271,7 +288,8 @@ export default function HomePage() {
   });
 
   return (
-    <div style={{ backgroundColor: 'var(--surface)' }}>
+    <div style={{ backgroundColor: 'var(--surface)', position: 'relative' }}>
+
       {/* ================= HERO SECTION WITH SCROLLEXPAND ANIMATION ================= */}
       <section className="relative w-full bg-[#14161a]" style={{ overflow: 'visible' }}>
         <ScrollExpand
@@ -307,7 +325,7 @@ export default function HomePage() {
               }}>
                 {headlineMain} <br />
                 <span style={{
-                  background: 'linear-gradient(90deg, #F5A623 0%, #FBBF24 50%, #FFFFFF 100%)',
+                  background: 'linear-gradient(90deg, #CE2626 0%, #E8DBB3 55%, #7DAACB 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   display: 'inline-block'
@@ -328,8 +346,8 @@ export default function HomePage() {
                   <div style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '12px',
-                    backgroundColor: '#F8F6F2',
-                    border: '1.5px solid #E2D9CF',
+                    backgroundColor: '#FFFDEB',
+                    border: '1.5px solid #E8DBB3',
                     transition: 'border-color 0.15s ease'
                   }}>
                     <label
@@ -346,7 +364,7 @@ export default function HomePage() {
                         marginBottom: '0.12rem'
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>location_on</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#CE2626' }}>location_on</span>
                       Pick-up Location
                     </label>
                     <select
@@ -387,8 +405,8 @@ export default function HomePage() {
                   <div style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '12px',
-                    backgroundColor: '#F8F6F2',
-                    border: '1.5px solid #E2D9CF',
+                    backgroundColor: '#FFFDEB',
+                    border: '1.5px solid #E8DBB3',
                     transition: 'border-color 0.15s ease'
                   }}>
                     <label
@@ -405,7 +423,7 @@ export default function HomePage() {
                         marginBottom: '0.12rem'
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>calendar_today</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#7DAACB' }}>calendar_today</span>
                       Pick-up Time &amp; Date
                     </label>
                     <input
@@ -432,8 +450,8 @@ export default function HomePage() {
                   <div style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '12px',
-                    backgroundColor: '#F8F6F2',
-                    border: '1.5px solid #E2D9CF',
+                    backgroundColor: '#FFFDEB',
+                    border: '1.5px solid #E8DBB3',
                     transition: 'border-color 0.15s ease'
                   }}>
                     <label
@@ -450,7 +468,7 @@ export default function HomePage() {
                         marginBottom: '0.12rem'
                       }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#F5A623' }}>event_repeat</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#CE2626' }}>event_repeat</span>
                       Return Time &amp; Date
                     </label>
                     <input
@@ -487,8 +505,8 @@ export default function HomePage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.5rem',
-                        backgroundColor: '#F5A623',
-                        color: '#000000',
+                        backgroundColor: '#CE2626',
+                        color: '#FFFFFF',
                         border: 'none',
                         borderRadius: '12px',
                         whiteSpace: 'nowrap',
@@ -496,18 +514,18 @@ export default function HomePage() {
                         fontWeight: 900,
                         letterSpacing: '0.015em',
                         cursor: 'pointer',
-                        boxShadow: '0 6px 20px rgba(245, 166, 35, 0.45)',
+                        boxShadow: '0 6px 20px rgba(206, 38, 38, 0.45)',
                         transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#e09315';
+                        e.currentTarget.style.backgroundColor = '#b31d1d';
                         e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(245, 166, 35, 0.55)';
+                        e.currentTarget.style.boxShadow = '0 10px 24px rgba(206, 38, 38, 0.55)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#F5A623';
+                        e.currentTarget.style.backgroundColor = '#CE2626';
                         e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 166, 35, 0.45)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(206, 38, 38, 0.45)';
                       }}
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '1.25rem', fontWeight: 900 }}>search</span>
@@ -523,16 +541,16 @@ export default function HomePage() {
       </section>
 
       {/* ================= OFFERS & BROADCASTS VELOCITY TICKER ================= */}
-      <section style={{ backgroundColor: '#18191B', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', padding: '1.4rem 0' }}>
+      <section style={{ backgroundColor: '#18191B', borderBottom: '1px solid rgba(232, 219, 179, 0.2)', padding: '1.4rem 0' }}>
         <div style={{ maxWidth: '96rem', margin: '0 auto', padding: '0 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem', padding: '0 0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', fontWeight: 800, color: '#F5A623', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#F5A623', animation: 'pulseGlow 2s infinite ease-in-out' }}></span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', fontWeight: 800, color: '#E8DBB3', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#CE2626', animation: 'pulseGlow 2s infinite ease-in-out' }}></span>
               Live Fleet Announcements &amp; Limited Offers
             </span>
             <Link
               to="/offers"
-              style={{ fontSize: '0.8rem', fontWeight: 700, color: '#F5A623', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+              style={{ fontSize: '0.8rem', fontWeight: 700, color: '#CE2626', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             >
               <span>View All Offers &amp; Promo Codes</span>
               <span className="material-symbols-outlined" style={{ fontSize: '1.05rem' }}>arrow_forward</span>
@@ -698,18 +716,18 @@ export default function HomePage() {
 
                     {/* 3 Spec Bento Items */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem', marginBottom: '0.5rem' }}>
-                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>airline_seat_recline_normal</span>
+                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid #E8DBB3' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#7DAACB' }}>airline_seat_recline_normal</span>
                         <div style={{ fontSize: '0.7rem', fontWeight: 600, marginTop: '0.1rem' }}>{car.seatingCapacity} Seats</div>
                       </div>
 
-                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>settings</span>
+                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid #E8DBB3' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#7DAACB' }}>settings</span>
                         <div style={{ fontSize: '0.7rem', fontWeight: 600, marginTop: '0.1rem' }}>{car.transmission === 'automatic' ? 'Auto' : 'Manual'}</div>
                       </div>
 
-                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid rgba(195,198,215,0.3)' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: 'var(--outline)' }}>
+                      <div style={{ padding: '0.35rem 0.2rem', background: 'var(--surface-container-low)', borderRadius: '0.4rem', textAlign: 'center', border: '1px solid #E8DBB3' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '0.95rem', color: '#7DAACB' }}>
                           {car.fuelType === 'electric' ? 'electric_bolt' : 'local_gas_station'}
                         </span>
                         <div style={{ fontSize: '0.7rem', fontWeight: 600, marginTop: '0.1rem' }}>{car.fuelType === 'electric' ? 'EV' : 'Gas'}</div>
@@ -719,11 +737,11 @@ export default function HomePage() {
                     {/* Fuel Notice Tag */}
                     <div style={{
                       padding: '0.25rem 0.45rem', borderRadius: '0.4rem',
-                      backgroundColor: '#fef3c7', border: '1px solid #fde68a',
-                      fontSize: '0.68rem', color: '#92400e', fontWeight: 600,
+                      backgroundColor: '#FAF7E8', border: '1px solid #E8DBB3',
+                      fontSize: '0.68rem', color: '#5A4C1C', fontWeight: 600,
                       display: 'flex', alignItems: 'center', gap: '0.25rem'
                     }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }}>local_gas_station</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: '0.85rem', color: '#CE2626' }}>local_gas_station</span>
                       <span>Customer Refuels • Fuel Not Provided</span>
                     </div>
                   </div>
@@ -737,12 +755,12 @@ export default function HomePage() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.15rem' }}>
                       <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.25rem', color: 'var(--primary)' }}>
-                        ${car.pricing.hourlyRate}
+                        ₹{car.pricing.hourlyRate.toLocaleString('en-IN')}
                       </span>
                       <span style={{ fontSize: '0.78rem', color: 'var(--on-surface-variant)' }}>/hr</span>
                     </div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--outline)' }}>
-                      ${car.pricing.dailyRate} / day
+                      ₹{car.pricing.dailyRate.toLocaleString('en-IN')} / day
                     </div>
                   </div>
 
@@ -796,20 +814,20 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {/* Step 1 */}
             <div className="card-veloce scroll-reveal delay-100" style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(229, 238, 255, 0.7)', userSelect: 'none' }}>
+              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(232, 219, 179, 0.45)', userSelect: 'none' }}>
                 01
               </div>
-              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(0,74,198,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(206, 38, 38, 0.1)', color: '#CE2626', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.8rem' }}>calendar_month</span>
               </div>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--primary)', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#CE2626', fontWeight: 700 }}>
                 Step 1 • Choose Schedule
               </span>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0.3rem 0 0.75rem' }}>Pick Car &amp; Time Period</h3>
               <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                 Select from our 50-car fleet and set your start and return date/time. Sign in to your account and complete booking to generate your 6-digit Secret Code.
               </p>
-              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(195,198,215,0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
+              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #E8DBB3', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>check_circle</span>
                 Instant Booking Confirmation
               </div>
@@ -817,20 +835,20 @@ export default function HomePage() {
 
             {/* Step 2 */}
             <div className="card-veloce scroll-reveal delay-200" style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(229, 238, 255, 0.7)', userSelect: 'none' }}>
+              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(232, 219, 179, 0.45)', userSelect: 'none' }}>
                 02
               </div>
-              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(0,74,198,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(125, 170, 203, 0.18)', color: '#7DAACB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.8rem' }}>pin</span>
               </div>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--primary)', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#7DAACB', fontWeight: 700 }}>
                 Step 2 • In-Person Handover
               </span>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0.3rem 0 0.75rem' }}>Meet Driver &amp; Show Code</h3>
               <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                 Go to the company car hub or office. The company driver arrives with your vehicle, asks for your 6-digit code, verifies it on the spot, and delivers the keys.
               </p>
-              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(195,198,215,0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
+              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #E8DBB3', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>check_circle</span>
                 Verified Driver Key Delivery
               </div>
@@ -838,20 +856,20 @@ export default function HomePage() {
 
             {/* Step 3 */}
             <div className="card-veloce scroll-reveal delay-300" style={{ padding: '2rem', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(229, 238, 255, 0.7)', userSelect: 'none' }}>
+              <div style={{ position: 'absolute', right: '-0.5rem', bottom: '-1rem', fontSize: '6rem', fontWeight: 900, color: 'rgba(232, 219, 179, 0.45)', userSelect: 'none' }}>
                 03
               </div>
-              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(0,74,198,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '1rem', background: 'rgba(232, 219, 179, 0.4)', color: '#CE2626', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.8rem' }}>local_gas_station</span>
               </div>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--primary)', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#CE2626', fontWeight: 700 }}>
                 Step 3 • Depart &amp; Refuel
               </span>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0.3rem 0 0.75rem' }}>Drive &amp; Customer Refuels</h3>
               <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                 Enjoy complete driving freedom for your booked time period. Customer refuels the vehicle as required during their journey, returning it to the hub when done.
               </p>
-              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid rgba(195,198,215,0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
+              <div style={{ marginTop: '2rem', paddingTop: '1rem', borderTop: '1px solid #E8DBB3', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
                 <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>check_circle</span>
                 100% Flexible Return
               </div>
@@ -983,6 +1001,48 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Floating Quick Return to Hero Shortcut */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' })}
+          className="floating-hero-pill animate-fade-in-up"
+          aria-label="Back to Hero Section"
+        >
+          <div style={{ position: 'relative', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg style={{ width: '22px', height: '22px', transform: 'rotate(-90deg)' }} viewBox="0 0 24 24">
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="#E8DBB3"
+                strokeWidth="2.5"
+                fill="none"
+                opacity="0.3"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                stroke="#CE2626"
+                strokeWidth="2.5"
+                fill="none"
+                strokeDasharray={56.5}
+                strokeDashoffset={56.5 - (56.5 * scrollPercent) / 100}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dashoffset 0.1s linear' }}
+              />
+            </svg>
+            <span className="material-symbols-outlined" style={{ fontSize: '13px', position: 'absolute', color: '#FFFFFF', fontWeight: 900 }}>
+              arrow_upward
+            </span>
+          </div>
+          <span style={{ fontSize: '11px', fontWeight: 800, fontFamily: 'var(--font-mono)', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#FFFFFF' }}>
+            Hero
+          </span>
+        </button>
+      )}
 
     </div>
   );

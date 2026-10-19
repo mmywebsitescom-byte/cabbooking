@@ -4,39 +4,39 @@
    =================================================================== */
 
 :root {
-  --primary: #F5A623;
-  --primary-container: #E29418;
-  --primary-fixed: #FDE8C4;
-  --primary-fixed-dim: #FBD595;
-  --on-primary: #18191B;
-  --on-primary-fixed: #2E1A00;
+  --primary: #CE2626;
+  --primary-container: #B31D1D;
+  --primary-fixed: #FFDEDE;
+  --primary-fixed-dim: #FCA5A5;
+  --on-primary: #FFFFFF;
+  --on-primary-fixed: #450A0A;
 
-  --secondary: #212327;
-  --secondary-container: #2B2D33;
-  --secondary-fixed: #E6E1D9;
-  --secondary-fixed-dim: #D5CEC4;
+  --secondary: #7DAACB;
+  --secondary-container: #5587AA;
+  --secondary-fixed: #E1EDF5;
+  --secondary-fixed-dim: #C1D8E7;
   --on-secondary: #FFFFFF;
-  --on-secondary-container: #EAE6DF;
+  --on-secondary-container: #0C2333;
 
-  --tertiary: #5A5650;
-  --tertiary-container: #726C65;
-  --tertiary-fixed: #E8E2D9;
-  --on-tertiary: #FFFFFF;
+  --tertiary: #E8DBB3;
+  --tertiary-container: #D8C794;
+  --tertiary-fixed: #FAF5E8;
+  --on-tertiary: #2D2716;
 
-  --surface: #FFFFFF;
-  --surface-bright: #FFFFFF;
-  --surface-dim: #F8FAFC;
+  --surface: #FFFDEB;
+  --surface-bright: #FFFDEB;
+  --surface-dim: #F7F5DC;
   --surface-container-lowest: #FFFFFF;
-  --surface-container-low: #F8FAFC;
-  --surface-container: #F1F5F9;
-  --surface-container-high: #E2E8F0;
-  --surface-container-highest: #CBD5E1;
-  --surface-variant: #F8FAFC;
+  --surface-container-low: #FAF7E8;
+  --surface-container: #F4EFCF;
+  --surface-container-high: #E8DBB3;
+  --surface-container-highest: #DCD0A4;
+  --surface-variant: #F5F1D9;
 
-  --on-surface: #000000;
-  --on-surface-variant: #334155;
-  --outline: #94A3B8;
-  --outline-variant: #E2E8F0;
+  --on-surface: #18191B;
+  --on-surface-variant: #42474E;
+  --outline: #7DAACB;
+  --outline-variant: #E8DBB3;
 
   --error: #BA1A1A;
   --error-container: #FFDAD6;
@@ -87,19 +87,19 @@
 }
 
   /* Theme compatibility fallbacks */
-  --bg-900: #FFFFFF;
-  --bg-800: #F8FAFC;
+  --bg-900: #FFFDEB;
+  --bg-800: #FAF7E8;
   --bg-700: #FFFFFF;
-  --bg-600: #F1F5F9;
-  --text-primary: #000000;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --border: #E2E8F0;
-  --border-subtle: #F1F5F9;
-  --gold: #F5A623;
-  --gold-subtle: rgba(245, 166, 35, 0.12);
-  --dark-panel: #212327;
-  --dark-panel-card: #2B2D33;
+  --bg-600: #F4EFCF;
+  --text-primary: #18191B;
+  --text-secondary: #42474E;
+  --text-muted: #72777F;
+  --border: #E8DBB3;
+  --border-subtle: rgba(232, 219, 179, 0.6);
+  --gold: #E8DBB3;
+  --gold-subtle: rgba(232, 219, 179, 0.25);
+  --dark-panel: #1A1C20;
+  --dark-panel-card: #22252A;
 }
 
 html {
@@ -175,7 +175,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-outline { color: var(--outline); }
 .text-on-primary { color: var(--on-primary); }
 
-.border-outline-variant { border-color: rgba(195, 198, 215, 0.6); }
+.border-outline-variant { border-color: var(--outline-variant); }
 
 /* Veloce Buttons */
 .btn-primary {
@@ -193,13 +193,13 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 14px rgba(245, 166, 35, 0.35);
+  box-shadow: 0 4px 14px rgba(206, 38, 38, 0.35);
   text-decoration: none;
 }
 .btn-primary:hover {
   background-color: var(--primary-container);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.45);
+  box-shadow: 0 6px 20px rgba(206, 38, 38, 0.45);
 }
 .btn-primary:active {
   transform: scale(0.98);
@@ -224,7 +224,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .btn-secondary:hover {
   border-color: var(--primary);
-  color: var(--on-surface);
+  color: var(--primary);
   background-color: var(--surface-container-low);
 }
 
@@ -253,7 +253,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Card System - Attractive Box Highlights & Shadows */
 .card-veloce {
   background: var(--surface-container-lowest);
-  border: 1px solid rgba(226, 221, 213, 0.85);
+  border: 1px solid var(--outline-variant);
   border-radius: var(--radius-2xl);
   box-shadow: 0 10px 30px -4px rgba(40, 30, 20, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -261,9 +261,9 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 .card-veloce:hover {
-  border-color: rgba(245, 166, 35, 0.5);
+  border-color: rgba(206, 38, 38, 0.55);
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px -8px rgba(245, 166, 35, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 1.5px rgba(245, 166, 35, 0.4);
+  box-shadow: 0 20px 40px -8px rgba(206, 38, 38, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 1.5px rgba(206, 38, 38, 0.35);
 }
 
 /* Floating Capsule Highlights */
@@ -479,13 +479,13 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 .hero-search-inner-card {
-  background-color: rgba(255, 255, 255, 0.98);
+  background-color: rgba(255, 253, 235, 0.98);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 22px;
-  border: 1.5px solid rgba(220, 214, 204, 0.95);
+  border: 1.5px solid #E8DBB3;
   padding: 0.55rem 0.85rem;
-  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(255, 255, 255, 0.85);
+  box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(232, 219, 179, 0.6);
 }
 
 .hero-search-form-grid {
@@ -499,6 +499,39 @@ input[type=range]::-webkit-slider-runnable-track {
   .hero-search-form-grid {
     grid-template-columns: 1.35fr 1.15fr 1.15fr auto;
   }
+}
+
+/* ================= Dynamic Scrolling Effects ================= */
+
+.floating-hero-pill {
+  position: fixed;
+  bottom: 2.2rem;
+  right: 2rem;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 1rem 0.5rem 0.65rem;
+  border-radius: 9999px;
+  background-color: rgba(26, 28, 32, 0.94);
+  color: #FFFFFF;
+  border: 1.5px solid #E8DBB3;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  cursor: pointer;
+  box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(232, 219, 179, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.floating-hero-pill:hover {
+  transform: translateY(-4px) scale(1.03);
+  border-color: #CE2626;
+  box-shadow: 0 18px 40px -4px rgba(206, 38, 38, 0.45), 0 0 0 1.5px #CE2626;
+}
+
+.floating-hero-pill:active {
+  transform: scale(0.96);
 }
 
 

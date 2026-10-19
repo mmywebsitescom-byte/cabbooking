@@ -237,14 +237,14 @@ export default function BookingPage() {
   };
 
   return (
-    <div className="bg-[#F5EFEB] text-[#1E2024] min-h-screen flex flex-col font-sans" style={{ paddingTop: '6.5rem', paddingBottom: '7rem' }}>
+    <div className="bg-[#FFFDEB] text-[#1E2024] min-h-screen flex flex-col font-sans" style={{ paddingTop: '6.5rem', paddingBottom: '7rem' }}>
       {/* STEP PROGRESS INDICATOR STRIP */}
-      <section className="bg-[#FAF6F1]/95 border-b border-[#E2DDD5] py-3.5 sticky top-[68px] z-30 backdrop-blur-md shadow-sm">
+      <section className="bg-[#FAF7E8]/95 border-b border-[#E8DBB3] py-3.5 sticky top-[68px] z-30 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6D7179]">
-            <span className="material-symbols-outlined text-[#F5A623] text-[20px]">lock</span>
+            <span className="material-symbols-outlined text-[#CE2626] text-[20px]">lock</span>
             <span>
-              Reservation Checkout Session • Vehicle Reserved (<strong className="text-[#D97706] font-bold">{formatTimer(timeLeft)}</strong> remaining)
+              Reservation Checkout Session • Vehicle Reserved (<strong className="text-[#CE2626] font-bold">{formatTimer(timeLeft)}</strong> remaining)
             </span>
           </div>
 
@@ -252,12 +252,12 @@ export default function BookingPage() {
           <div className="flex items-center gap-3">
             {/* Step 1: Vehicle & Dates (Completed) */}
             <Link to={`/cars/${car._id}`} className="flex items-center gap-2 hover:opacity-80 transition-opacity no-underline text-inherit">
-              <div className="w-6 h-6 rounded-full bg-[#F5A623] text-[#18191B] flex items-center justify-center text-xs font-bold shadow-sm">
+              <div className="w-6 h-6 rounded-full bg-[#CE2626] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                 <span className="material-symbols-outlined text-[15px]">check</span>
               </div>
               <span className="text-xs font-bold text-[#1E2024]">Vehicle &amp; Dates</span>
             </Link>
-            <div className="w-8 h-px bg-[#F5A623]"></div>
+            <div className="w-8 h-px bg-[#CE2626]"></div>
 
             {/* Step 2: Verification & Protection */}
             <button
@@ -267,8 +267,8 @@ export default function BookingPage() {
             >
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
                 currentStep === 2
-                  ? 'bg-[#F5A623] text-[#18191B] ring-4 ring-[#FDE8C4]'
-                  : 'bg-[#E2DDD5] text-[#18191B]'
+                  ? 'bg-[#CE2626] text-white ring-4 ring-[#FFDEDE]'
+                  : 'bg-[#E8DBB3] text-[#18191B]'
               }`}>
                 {currentStep === 3 ? (
                   <span className="material-symbols-outlined text-[15px]">check</span>
@@ -276,11 +276,11 @@ export default function BookingPage() {
                   '2'
                 )}
               </div>
-              <span className={`text-xs font-bold ${currentStep === 2 ? 'text-[#D97706]' : 'text-[#6D7179]'}`}>
+              <span className={`text-xs font-bold ${currentStep === 2 ? 'text-[#CE2626]' : 'text-[#6D7179]'}`}>
                 Verification &amp; Protection
               </span>
             </button>
-            <div className={`w-8 h-px ${currentStep === 3 ? 'bg-[#F5A623]' : 'bg-[#E2DDD5]'}`}></div>
+            <div className={`w-8 h-px ${currentStep === 3 ? 'bg-[#CE2626]' : 'bg-[#E8DBB3]'}`}></div>
 
             {/* Step 3: Payment & Secret Code Handover */}
             <button
@@ -301,12 +301,12 @@ export default function BookingPage() {
             >
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${
                 currentStep === 3
-                  ? 'bg-[#F5A623] text-[#18191B] ring-4 ring-[#FDE8C4]'
-                  : 'border border-[#E2DDD5] bg-white text-[#8C877E]'
+                  ? 'bg-[#CE2626] text-white ring-4 ring-[#FFDEDE]'
+                  : 'border border-[#E8DBB3] bg-white text-[#8C877E]'
               }`}>
                 3
               </div>
-              <span className={`text-xs font-bold ${currentStep === 3 ? 'text-[#D97706]' : 'text-[#8C877E]'}`}>
+              <span className={`text-xs font-bold ${currentStep === 3 ? 'text-[#CE2626]' : 'text-[#8C877E]'}`}>
                 Payment &amp; Secret Code
               </span>
             </button>
@@ -1059,15 +1059,15 @@ export default function BookingPage() {
 
                 <div className="flex justify-between text-white/70 text-[11px] py-1.5 px-2.5 rounded-xl bg-white/5 border border-white/10">
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px] text-[#F5A623]">info</span>
+                    <span className="material-symbols-outlined text-[13px] text-[#7DAACB]">info</span>
                     Refundable security hold
                   </span>
                   <span>₹{Math.round(securityHold).toLocaleString('en-IN')} (Auth Only)</span>
                 </div>
 
                 {/* Fuel Not Included Warning */}
-                <div className="p-2.5 rounded-xl bg-[#F5A623]/10 border border-[#F5A623]/25 text-[11px] text-[#F5A623] font-medium flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[14px] shrink-0 mt-0.5">local_gas_station</span>
+                <div className="p-2.5 rounded-xl bg-white/5 border border-[#E8DBB3]/25 text-[11px] text-[#E8DBB3] font-medium flex items-start gap-2">
+                  <span className="material-symbols-outlined text-[14px] shrink-0 mt-0.5 text-[#CE2626]">local_gas_station</span>
                   <span>Fuel Policy: Fuel is not provided by company. Customer adds own fuel.</span>
                 </div>
 
@@ -1079,13 +1079,13 @@ export default function BookingPage() {
                       {paymentTab === 'cash' ? 'Payable at Hub Counter' : 'Billed securely now'}
                     </span>
                   </div>
-                  <span className="text-3xl font-extrabold text-[#F5A623] font-heading">
+                  <span className="text-3xl font-extrabold text-[#CE2626] font-heading">
                     ₹{Math.round(totalDueNow).toLocaleString('en-IN')}
                   </span>
                 </div>
               </div>
 
-              {/* Action Button: Warm Golden Amber matching Image 1 */}
+              {/* Action Button: High-Impact Racing Red */}
               {!user ? (
                 <button
                   type="button"
@@ -1093,7 +1093,7 @@ export default function BookingPage() {
                     toast.error('Sign in is required to complete this booking.');
                     navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
                   }}
-                  className="w-full h-12 rounded-full bg-[#F5A623] hover:bg-[#E29418] text-[#18191B] font-bold text-sm active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer border-none"
+                  className="w-full h-12 rounded-full bg-[#CE2626] hover:bg-[#b31d1d] text-white font-bold text-sm active:scale-[0.98] transition-all shadow-lg shadow-red-950/40 flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   <span className="material-symbols-outlined text-[18px]">lock</span>
                   <span>Sign In to Complete Booking</span>
@@ -1110,7 +1110,7 @@ export default function BookingPage() {
                     setCurrentStep(3);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full h-12 rounded-full bg-[#F5A623] hover:bg-[#E29418] text-[#18191B] font-bold text-sm active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer border-none"
+                  className="w-full h-12 rounded-full bg-[#CE2626] hover:bg-[#b31d1d] text-white font-bold text-sm active:scale-[0.98] transition-all shadow-lg shadow-red-950/40 flex items-center justify-center gap-2 cursor-pointer border-none"
                 >
                   <span>Proceed to Step 3: Payment</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -1121,7 +1121,7 @@ export default function BookingPage() {
                   id="right-summary-pay-btn"
                   onClick={handleConfirmReservation}
                   disabled={processing || !agreed}
-                  className="w-full h-12 rounded-full bg-[#F5A623] hover:bg-[#E29418] text-[#18191B] font-bold text-sm active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none"
+                  className="w-full h-12 rounded-full bg-[#CE2626] hover:bg-[#b31d1d] text-white font-bold text-sm active:scale-[0.98] transition-all shadow-lg shadow-red-950/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none"
                 >
                   <span>
                     {processing
@@ -1142,7 +1142,7 @@ export default function BookingPage() {
                     Free cancellation up to 6h before pickup
                   </span>
                   <span className="text-white/30">•</span>
-                  <span className="flex items-center gap-1 text-[#F5A623]">
+                  <span className="flex items-center gap-1 text-[#7DAACB]">
                     <span className="material-symbols-outlined text-[13px]">verified</span>
                     Verified 6-Digit Code Handover
                   </span>

@@ -87,14 +87,14 @@ export default function LoginPage() {
                   width: '2.1rem',
                   height: '2.1rem',
                   borderRadius: '8px',
-                  backgroundColor: '#F5A623',
+                  backgroundColor: '#CE2626',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#18191B',
-                  boxShadow: '0 3px 8px rgba(245, 166, 35, 0.35)'
+                  color: '#FFFFFF',
+                  boxShadow: '0 3px 8px rgba(206, 38, 38, 0.35)'
                 }}>
-                  <Zap style={{ width: '1.1rem', height: '1.1rem', fill: '#18191B' }} />
+                  <Zap style={{ width: '1.1rem', height: '1.1rem', fill: '#FFFFFF' }} />
                 </span>
                 <span style={{
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -103,7 +103,7 @@ export default function LoginPage() {
                   color: '#18191B',
                   letterSpacing: '-0.03em'
                 }}>
-                  VELOCE<span style={{ color: '#F5A623' }}>.</span>
+                  VELOCE<span style={{ color: '#CE2626' }}>.</span>
                 </span>
               </Link>
             </div>
@@ -163,8 +163,8 @@ export default function LoginPage() {
                     transition: 'all 0.15s ease-in-out'
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#F5A623';
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(245, 166, 35, 0.18)';
+                    e.currentTarget.style.borderColor = '#CE2626';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(206, 38, 38, 0.18)';
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = '#E4DDD6';
@@ -209,8 +209,8 @@ export default function LoginPage() {
                       transition: 'all 0.15s ease-in-out'
                     }}
                     onFocus={(e) => {
-                      e.currentTarget.style.borderColor = '#F5A623';
-                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(245, 166, 35, 0.18)';
+                      e.currentTarget.style.borderColor = '#CE2626';
+                      e.currentTarget.style.boxShadow = '0 0 0 3px rgba(206, 38, 38, 0.18)';
                     }}
                     onBlur={(e) => {
                       e.currentTarget.style.borderColor = '#E4DDD6';
@@ -270,7 +270,7 @@ export default function LoginPage() {
                     style={{
                       width: '15px',
                       height: '15px',
-                      accentColor: '#F5A623',
+                      accentColor: '#CE2626',
                       borderRadius: '4px',
                       cursor: 'pointer'
                     }}
@@ -301,14 +301,14 @@ export default function LoginPage() {
                 style={{
                   width: '100%',
                   padding: '0.78rem 1rem',
-                  backgroundColor: '#F5A623',
-                  color: '#18191B',
+                  backgroundColor: '#CE2626',
+                  color: '#FFFFFF',
                   fontWeight: 800,
                   fontSize: '0.94rem',
                   borderRadius: '12px',
                   border: 'none',
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(245, 166, 35, 0.35)',
+                  boxShadow: '0 4px 14px rgba(206, 38, 38, 0.35)',
                   marginTop: '0.2rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -317,10 +317,10 @@ export default function LoginPage() {
                   transition: 'all 0.15s ease-in-out'
                 }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#e69818';
+                  if (!loading) e.currentTarget.style.backgroundColor = '#b31d1d';
                 }}
                 onMouseLeave={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#F5A623';
+                  if (!loading) e.currentTarget.style.backgroundColor = '#CE2626';
                 }}
               >
                 {loading ? 'Signing in...' : 'Sign in'}
@@ -408,7 +408,7 @@ export default function LoginPage() {
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#F5A623';
+                      e.currentTarget.style.borderColor = '#CE2626';
                       e.currentTarget.style.backgroundColor = '#FFFDF9';
                     }}
                     onMouseLeave={(e) => {
@@ -440,7 +440,7 @@ export default function LoginPage() {
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#F5A623';
+                      e.currentTarget.style.borderColor = '#CE2626';
                       e.currentTarget.style.backgroundColor = '#FFFDF9';
                     }}
                     onMouseLeave={(e) => {
@@ -530,7 +530,7 @@ export default function LoginPage() {
               fontWeight: 700,
               letterSpacing: '0.04em'
             }}>
-              <ShieldCheck style={{ width: '1rem', height: '1rem', color: '#F5A623' }} />
+              <ShieldCheck style={{ width: '1rem', height: '1rem', color: '#CE2626' }} />
               100% VERIFIED FLEET
             </span>
           </div>

@@ -91,13 +91,13 @@ export default function RegisterPage() {
               <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
                 <span style={{
                   width: '2.2rem', height: '2.2rem', borderRadius: '0.5rem',
-                  backgroundColor: '#F5A623', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', color: '#18191B', boxShadow: '0 3px 8px rgba(245, 166, 35, 0.35)'
+                  backgroundColor: '#CE2626', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', color: '#FFFFFF', boxShadow: '0 3px 8px rgba(206, 38, 38, 0.35)'
                 }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '1.25rem', fontWeight: 900 }}>electric_bolt</span>
                 </span>
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: '1.35rem', color: '#18191B', letterSpacing: '-0.02em' }}>
-                  VELOCE<span style={{ color: '#F5A623' }}>.</span>
+                  VELOCE<span style={{ color: '#CE2626' }}>.</span>
                 </span>
               </Link>
 
@@ -270,22 +270,22 @@ export default function RegisterPage() {
                 style={{
                   width: '100%',
                   padding: '0.78rem',
-                  backgroundColor: '#F5A623',
-                  color: '#18191B',
+                  backgroundColor: '#CE2626',
+                  color: '#FFFFFF',
                   fontWeight: 800,
                   fontSize: '0.94rem',
                   borderRadius: '12px',
                   border: 'none',
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(245, 166, 35, 0.35)',
+                  boxShadow: '0 4px 14px rgba(206, 38, 38, 0.35)',
                   marginTop: '0.35rem',
                   transition: 'all 0.15s ease-in-out'
                 }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#e69818';
+                  if (!loading) e.currentTarget.style.backgroundColor = '#b31d1d';
                 }}
                 onMouseLeave={(e) => {
-                  if (!loading) e.currentTarget.style.backgroundColor = '#F5A623';
+                  if (!loading) e.currentTarget.style.backgroundColor = '#CE2626';
                 }}
               >
                 {loading ? 'Creating Account...' : 'Sign up for free!'}
@@ -295,7 +295,7 @@ export default function RegisterPage() {
 
           <div style={{ textAlign: 'center', fontSize: '0.82rem', color: '#78716C', marginTop: '1.5rem', paddingTop: '0.85rem', borderTop: '1px solid #F0EAE1' }}>
             Already have an account?{' '}
-            <Link to={`/login?redirect=${encodeURIComponent(redirect)}`} style={{ color: '#D98200', fontWeight: 700, textDecoration: 'none' }}>
+            <Link to={`/login?redirect=${encodeURIComponent(redirect)}`} style={{ color: '#CE2626', fontWeight: 700, textDecoration: 'none' }}>
               Sign in
             </Link>
           </div>

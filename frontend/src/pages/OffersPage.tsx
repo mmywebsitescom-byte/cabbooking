@@ -13,7 +13,7 @@ const DEFAULT_OFFERS: Coupon[] = [
     minHours: 24,
     maxDiscount: 250,
     isActive: true,
-    description: '20% off for 24+ hour weekend trips. Max discount $250 on all luxury and sports models.'
+    description: '20% off for 24+ hour weekend trips. Max discount ₹5,000 on all luxury and sports models.'
   },
   {
     code: 'FIRSTDRIVE',
@@ -153,7 +153,7 @@ export default function OffersPage() {
 
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3 flex-wrap">
                   <div className="text-[11px] text-slate-400">
-                    Max Discount: <strong className="text-slate-200 font-mono">${coupon.maxDiscount || 150}</strong>
+                    Max Discount: <strong className="text-slate-200 font-mono">₹{((coupon.maxDiscount || 150) * 50).toLocaleString('en-IN')}</strong>
                   </div>
 
                   <div className="flex items-center gap-2">

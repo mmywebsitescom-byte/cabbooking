@@ -1046,10 +1046,10 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-4 antialiased">
         <div className="max-w-md w-full bg-[#1E293B] rounded-3xl p-8 border border-slate-700/80 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-[#F5A623] to-blue-500"></div>
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#CE2626] via-[#E8DBB3] to-[#7DAACB]"></div>
 
           <div className="text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-[#F5A623] text-black font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/25">
+            <div className="w-14 h-14 rounded-2xl bg-[#CE2626] text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-red-500/25">
               ⚡
             </div>
             <h1 className="text-2xl font-black text-white tracking-tight">VELOCE Control Center</h1>
@@ -1065,7 +1065,7 @@ export default function AdminPage() {
                 type="email"
                 value={adminEmail}
                 onChange={e => setAdminEmail(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-amber-500 focus:outline-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-[#CE2626] focus:outline-none"
                 placeholder="admin@veloce.io"
                 required
               />
@@ -1079,7 +1079,7 @@ export default function AdminPage() {
                 type="password"
                 value={adminPassword}
                 onChange={e => setAdminPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-amber-500 focus:outline-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:border-[#CE2626] focus:outline-none"
                 placeholder="••••••••"
                 required
               />
@@ -1088,7 +1088,7 @@ export default function AdminPage() {
             <button
               type="submit"
               disabled={adminLoggingIn}
-              className="w-full py-3 px-4 rounded-xl bg-[#F5A623] hover:bg-[#e09315] text-black font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/20 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-[#CE2626] hover:bg-[#b31d1d] text-white font-extrabold text-sm tracking-wide transition-all shadow-lg shadow-red-500/20 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
             >
               {adminLoggingIn ? (
                 <span>Authenticating...</span>

@@ -184,7 +184,7 @@ export default function ProfilePage() {
     : 'U';
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] font-sans antialiased" style={{ paddingTop: '5.5rem', paddingBottom: '4rem' }}>
+    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] font-sans antialiased" style={{ paddingTop: '6.75rem', paddingBottom: '4rem' }}>
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
 
         {/* Top Breadcrumb */}

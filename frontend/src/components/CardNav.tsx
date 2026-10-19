@@ -72,22 +72,22 @@ interface AnchorProps {
 
 const THEMES: Record<string, Record<string, string>> = {
   dark: {
-    '--cn-panel': 'rgba(38, 35, 46, 0.72)',
-    '--cn-solid': '#26232e',
-    '--cn-edge': 'rgba(255, 255, 255, 0.08)',
-    '--cn-highlight': 'rgba(255, 255, 255, 0.07)',
-    '--cn-shadow': '0 24px 48px -20px rgba(0, 0, 0, 0.8), 0 6px 16px -8px rgba(0, 0, 0, 0.5)',
-    '--cn-text': '#f4f4f5',
-    '--cn-muted': 'rgba(244, 244, 245, 0.56)',
-    '--cn-hover': 'rgba(255, 255, 255, 0.06)',
-    '--cn-ring': 'rgba(244, 244, 245, 0.55)',
-    '--cn-tile': 'linear-gradient(180deg, #34303d 0%, #27242f 100%)',
+    '--cn-panel': 'rgba(16, 18, 22, 0.92)',
+    '--cn-solid': '#14161a',
+    '--cn-edge': 'rgba(255, 255, 255, 0.16)',
+    '--cn-highlight': 'rgba(255, 255, 255, 0.12)',
+    '--cn-shadow': '0 24px 60px -12px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.12)',
+    '--cn-text': '#ffffff',
+    '--cn-muted': 'rgba(244, 244, 245, 0.65)',
+    '--cn-hover': 'rgba(255, 255, 255, 0.08)',
+    '--cn-ring': 'rgba(206, 38, 38, 0.65)',
+    '--cn-tile': 'linear-gradient(180deg, #24222c 0%, #17161b 100%)',
     '--cn-tile-rim':
-      'inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 10px -4px rgba(0, 0, 0, 0.6)',
-    '--cn-cta': 'linear-gradient(180deg, #ffffff 0%, #ebebf0 100%)',
-    '--cn-cta-ink': '#121016',
-    '--cn-cta-shadow': 'inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 16px -6px rgba(0, 0, 0, 0.6)',
-    '--cn-cta-hover': 'brightness(0.94)'
+      'inset 0 0 0 1px rgba(232, 219, 179, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 14px -4px rgba(0, 0, 0, 0.7)',
+    '--cn-cta': 'linear-gradient(180deg, #CE2626 0%, #b31d1d 100%)',
+    '--cn-cta-ink': '#ffffff',
+    '--cn-cta-shadow': 'inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 6px 18px -4px rgba(206, 38, 38, 0.5)',
+    '--cn-cta-hover': 'brightness(1.08)'
   },
   light: {
     '--cn-panel': 'rgba(244, 244, 246, 0.84)',
@@ -118,14 +118,14 @@ const RIM =
 const BAR =
   'relative z-[2] box-border grid h-[var(--cn-bar)] grid-cols-[1fr_auto_1fr] items-center px-[var(--cn-inset)] group-data-[narrow]/cn:grid-cols-[auto_1fr_auto]';
 const MENU =
-  'inline-flex h-[calc(var(--cn-bar)_-_var(--cn-inset)*2)] cursor-pointer items-center gap-[10px] justify-self-start rounded-[calc(var(--cn-radius)_-_var(--cn-inset))] border-0 pl-[16px] pr-[14px] [background:none] [font-family:inherit] [font-size:inherit] font-medium text-[var(--cn-text)] outline-none transition-[background-color] duration-200 ease-[ease] hover:[background:var(--cn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--cn-ring)] data-[icon-only]:w-[calc(var(--cn-bar)_-_var(--cn-inset)*2)] data-[icon-only]:justify-center data-[icon-only]:p-0 group-data-[narrow]/cn:col-[3] group-data-[narrow]/cn:row-[1] group-data-[narrow]/cn:justify-self-end';
+  'inline-flex h-[calc(var(--cn-bar)_-_var(--cn-inset)*2)] cursor-pointer items-center gap-[10px] justify-self-start rounded-[calc(var(--cn-radius)_-_var(--cn-inset))] border-0 pl-[16px] pr-[14px] [background:none] [font-family:inherit] [font-size:inherit] font-bold text-[var(--cn-text)] outline-none transition-[background-color] duration-200 ease-[ease] hover:[background:var(--cn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--cn-ring)] data-[icon-only]:w-[calc(var(--cn-bar)_-_var(--cn-inset)*2)] data-[icon-only]:justify-center data-[icon-only]:p-0 group-data-[narrow]/cn:col-[3] group-data-[narrow]/cn:row-[1] group-data-[narrow]/cn:justify-self-end';
 const BURGER = 'relative h-[13px] w-[18px]';
 const LINE_TOP =
-  'absolute left-0 top-[1.5px] h-[1.5px] w-full rounded-[2px] bg-current transition-[top,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:top-[5.75px] group-data-[open]/cn:rotate-45 motion-reduce:transition-none';
+  'absolute left-0 top-[1px] h-[2px] w-full rounded-[2px] bg-current transition-[top,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:top-[5.5px] group-data-[open]/cn:rotate-45 motion-reduce:transition-none';
 const LINE_MID =
-  'absolute left-0 top-[5.75px] h-[1.5px] w-full rounded-[2px] bg-current transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:opacity-0 motion-reduce:transition-none';
+  'absolute left-0 top-[5.5px] h-[2px] w-full rounded-[2px] bg-current transition-opacity duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:opacity-0 motion-reduce:transition-none';
 const LINE_BOTTOM =
-  'absolute left-0 top-[10px] h-[1.5px] w-full rounded-[2px] bg-current transition-[top,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:top-[5.75px] group-data-[open]/cn:-rotate-45 motion-reduce:transition-none';
+  'absolute left-0 top-[10px] h-[2px] w-full rounded-[2px] bg-current transition-[top,rotate] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:top-[5.5px] group-data-[open]/cn:-rotate-45 motion-reduce:transition-none';
 const MENU_LABEL = 'relative inline-grid overflow-hidden';
 const WORD_OPEN =
   '[grid-area:1/1] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[open]/cn:-translate-y-[110%] motion-reduce:transition-none';
@@ -270,11 +270,11 @@ export const CardNav = ({
   const vars: Record<string, string> = {
     ...palette,
     '--cn-max': `${maxWidth}px`,
-    '--cn-bar': '60px',
+    '--cn-bar': '68px',
     '--cn-inset': '8px',
     '--cn-gap': '8px',
-    '--cn-radius': '18px',
-    '--cn-logo': '24px',
+    '--cn-radius': '20px',
+    '--cn-logo': '28px',
     '--cn-card': `${cardHeight}px`
   };
   if (surface === 'glass') vars['--cn-blur'] = 'blur(20px) saturate(1.6)';
@@ -302,13 +302,13 @@ export const CardNav = ({
     const content = contentRef.current;
     if (!panel || !content) return undefined;
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    const state = { p: settingsRef.current.open ? 1 : 0, v: 0, height: content.offsetHeight, bar: 60 };
+    const state = { p: settingsRef.current.open ? 1 : 0, v: 0, height: content.offsetHeight, bar: 68 };
     let raf = 0;
     let last = 0;
 
     const render = () => {
       const s = settingsRef.current;
-      state.bar = parseFloat(getComputedStyle(panel).getPropertyValue('--cn-bar')) || 60;
+      state.bar = parseFloat(getComputedStyle(panel).getPropertyValue('--cn-bar')) || 68;
       panel.style.height = `${state.bar + Math.max(0, state.p) * state.height}px`;
       const cards = cardRefs.current.filter((card): card is HTMLDivElement => card !== null);
       const count = cards.length;
@@ -544,7 +544,16 @@ export const CardNav = ({
           </button>
 
           {logo && (
-            <LinkComponent href={logoHref} className={LOGO} aria-label={logoAlt}>
+            <LinkComponent
+              href={logoHref}
+              className={LOGO}
+              aria-label={logoAlt}
+              onClick={(e: ReactMouseEvent<HTMLElement>) => {
+                if (logoHref === '/') {
+                  window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                }
+              }}
+            >
               {typeof logo === 'string' ? <img src={logo} alt="" draggable={false} /> : logo}
             </LinkComponent>
           )}
@@ -558,10 +567,11 @@ export const CardNav = ({
             <LinkComponent
               href="/"
               onClick={(event: ReactMouseEvent<HTMLElement>) => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                 onLinkClick?.({ label: 'Back to Home', href: '/' }, items[0] || { label: 'Home' }, event);
                 setOpen(false);
               }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F5A623] hover:bg-[#E29418] text-[#141518] font-bold text-[12px] tracking-wide transition-all shadow-md active:scale-95 no-underline cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#CE2626] hover:bg-[#b31d1d] text-white font-bold text-[12px] tracking-wide transition-all shadow-md shadow-red-950/40 active:scale-95 no-underline cursor-pointer"
             >
               <span className="text-[13px]">🏠</span>
               <span>Back to Home</span>
@@ -594,6 +604,9 @@ export const CardNav = ({
                           'aria-label': link.ariaLabel,
                           tabIndex: open ? undefined : -1,
                           onClick: event => {
+                            if (link.href === '/') {
+                              window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                            }
                             onLinkClick?.(link, item, event);
                             setOpen(false);
                           }

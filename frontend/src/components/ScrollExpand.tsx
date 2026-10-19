@@ -118,7 +118,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     const e = smoothstep(0, 1, p);
 
-    // 1. Clip path interpolation (expands smoothly to 100% full screen)
+    // 1. Clip path interpolation (expands smoothly to 100% full screen, reverses smoothly to inset card)
     const w = c.startWidth + (100 - c.startWidth) * e;
     const h = c.startHeight + (100 - c.startHeight) * e;
     const ix = Math.max(0, (100 - w) / 2);
@@ -135,7 +135,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       scrimRef.current.style.opacity = `${c.overlayScrim * e}`;
     }
 
-    // 4. Initial title fade-out and gentle rise
+    // 4. Initial title fade-out and gentle rise (fades back in when scrolling reverse)
     if (titleRef.current) {
       const titleFade = smoothstep(0.2, 0.6, p);
       titleRef.current.style.opacity = `${1 - titleFade}`;
@@ -144,7 +144,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       titleRef.current.style.visibility = titleFade >= 0.98 ? 'hidden' : 'visible';
     }
 
-    // 5. Scroll hint fade-out
+    // 5. Scroll hint fade-out (fades back in when scrolling reverse)
     if (hintRef.current) {
       const hintFade = smoothstep(0.0, 0.18, p);
       hintRef.current.style.opacity = `${1 - hintFade}`;
@@ -153,7 +153,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       hintRef.current.style.visibility = hintFade >= 0.98 ? 'hidden' : 'visible';
     }
 
-    // 6. Final content (Headlines & Search Form) fade-in and slide-up
+    // 6. Final content (Headlines & Search Form) fade-in and slide-up (fades out when scrolling reverse)
     if (overlayRef.current) {
       const contentFade = smoothstep(0.42, 0.92, p);
       overlayRef.current.style.opacity = `${contentFade}`;
@@ -198,6 +198,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       if (c.useWindowScroll) {
         const top = track.getBoundingClientRect().top;
         // When top is 0, progress is 0. As top moves down by -span, progress moves to 1.
+        // When scrolling reverse, top moves back towards 0, progress smoothly decreases to 0.
         return clamp(-top / span, 0, 1);
       }
       return clamp(track.scrollTop / span, 0, 1);
@@ -225,7 +226,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     const onScroll = () => {
       target = readProgress();
-      if (propsRef.current.smoothing <= 0 || reduceMotion) {
+      if (propsRef.current.smoothing <= 0 || reduceMotion || target === 0) {
         current = target;
         applyProgress(current);
         return;
@@ -379,7 +380,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
               willChange: 'opacity, transform'
             }}
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-bold uppercase tracking-widest text-[#F5A623] mb-3 shadow-lg">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-bold uppercase tracking-widest text-[#E8DBB3] mb-3 shadow-lg">
               VELOCE Concierge Fleet
             </span>
             <span>{title}</span>
@@ -390,14 +391,14 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
         {scrollHint ? (
           <div
             ref={hintRef}
-            className="absolute inset-x-0 bottom-6 text-center text-xs sm:text-sm tracking-wider text-white/85 font-semibold cursor-pointer select-none flex items-center justify-center gap-1.5 hover:text-[#F5A623] transition-colors"
+            className="absolute inset-x-0 bottom-6 text-center text-xs sm:text-sm tracking-wider text-white/85 font-semibold cursor-pointer select-none flex items-center justify-center gap-1.5 hover:text-[#CE2626] transition-colors"
             style={{
               textShadow: '0 2px 10px rgba(0,0,0,0.8)',
               willChange: 'opacity, transform'
             }}
           >
             <span>{scrollHint}</span>
-            <span className="material-symbols-outlined text-[16px] animate-bounce">arrow_downward</span>
+            <span className="material-symbols-outlined text-[16px] animate-bounce text-[#CE2626]">arrow_downward</span>
           </div>
         ) : null}
       </div>

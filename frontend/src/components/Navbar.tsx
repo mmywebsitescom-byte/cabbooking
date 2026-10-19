@@ -35,6 +35,21 @@ const RouterLink = ({ href, children, ...props }: any) => {
       </a>
     );
   }
+  if (href === '/') {
+    return (
+      <Link
+        to="/"
+        onClick={(e) => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          if (props.onClick) props.onClick(e);
+        }}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   return (
     <Link to={href} {...props}>
       {children}
@@ -49,8 +64,21 @@ export default function Navbar() {
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Auto-hide when scrolling down, bring back when scrolling up
+  // Auto-hide when scrolling down, bring back when scrolling up (on content pages)
+  // Dedicated account pages (/profile, /account, /dashboard) always keep the navbar visible
   useEffect(() => {
+    const isAlwaysVisiblePage =
+      location.pathname.startsWith('/profile') ||
+      location.pathname.startsWith('/account') ||
+      location.pathname.startsWith('/dashboard') ||
+      location.pathname.startsWith('/login') ||
+      location.pathname.startsWith('/register');
+
+    if (isAlwaysVisiblePage) {
+      setVisible(true);
+      return;
+    }
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
@@ -83,11 +111,12 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isNavOpen]);
+  }, [isNavOpen, location.pathname]);
 
-  // Always reveal header on route change
+  // Always reveal header on route change and reset scroll tracker
   useEffect(() => {
     setVisible(true);
+    lastScrollY.current = 0;
   }, [location.pathname]);
 
   // Do not render public consumer navbar on administrative pages
@@ -95,15 +124,12 @@ export default function Navbar() {
     return null;
   }
 
-  // VELOCE brand logo
+  // VELOCE brand logo - clean, bold, high-weight luxury typography
   const VeloceLogo = (
-    <div className="flex items-center gap-2 group cursor-pointer select-none">
-      <span className="w-7 h-7 rounded-lg bg-[#F5A623] flex items-center justify-center text-[#BBC0CD] font-black text-sm shadow-sm shadow-amber-500/30 group-hover:scale-105 transition-transform">
-        ⚡
-      </span>
-      <span className="font-extrabold text-[15px] tracking-tight text-white font-sans flex items-center gap-1">
+    <div className="flex items-center gap-1.5 group cursor-pointer select-none">
+      <span className="font-black text-[18px] sm:text-[20px] tracking-tight text-white font-sans flex items-center">
         VELOCE
-        <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623]"></span>
+        <span className="text-[#CE2626] text-[24px] leading-none ml-0.5">.</span>
       </span>
     </div>
   );
@@ -193,7 +219,7 @@ export default function Navbar() {
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
-      <div className="pointer-events-auto max-w-[940px] mx-auto">
+      <div className="pointer-events-auto max-w-[1180px] mx-auto">
         <CardNav
           logo={VeloceLogo}
           logoHref="/"
@@ -201,9 +227,9 @@ export default function Navbar() {
           cta={cta}
           theme="dark"
           surface="glass"
-          accentColor="#F5A623"
+          accentColor="#CE2626"
           linkComponent={RouterLink}
-          maxWidth={940}
+          maxWidth={1180}
           cardHeight={195}
           openOn="click"
           cardEffect="rise"

@@ -8,10 +8,10 @@ export default function PoliciesPage() {
       title: 'Transparent Pricing & Tariff Protocol',
       tagline: 'Zero hidden fees. What you see is precisely what you pay.',
       points: [
-        'Flexible Billing Options: Seamlessly toggle between hourly flex rates ($15–$45/hr) or 24-hour daily rates ($99–$310/day).',
+        'Flexible Billing Options: Seamlessly toggle between hourly flex rates (₹1,200–₹3,500/hr) or 24-hour daily rates (₹7,500–₹25,000/day).',
         'Dynamic Automated Metering: Our engine automatically calculates the most cost-effective combination of daily and hourly rates.',
         'Airport & City Concession Fees: All local airport regulatory surcharges and sales taxes (6.6%) are itemized upfront.',
-        'Included Mileage: Every 24-hour rental includes 300 complimentary clean miles. Additional distance is metered at $0.35/mile afterwards.',
+        'Included Mileage: Every 24-hour rental includes 300 complimentary clean miles. Additional distance is metered at ₹25/km afterwards.',
       ],
     },
     {
@@ -45,9 +45,9 @@ export default function PoliciesPage() {
       tagline: 'Engineered driver peace of mind with zero card limit holds.',
       points: [
         'Zero Security Deposit Eligibility: Qualify with an instant digital ID check. Zero blocked funds or thousands held on your credit limit.',
-        'Standard Basic Protection (Included $0): Complimentary state minimum third-party coverage with a $1,500 damage deductible.',
-        'Premium Zero-Deductible (+$35/day): $0 excess liability, complete windshield, tire/wheel, undercarriage shield, and priority concierge swap.',
-        'Refundable Authorization Hold: A temporary $200 security hold is authorized at trip start and automatically released within 2 hours of safe return.',
+        'Standard Basic Protection (Included ₹0): Complimentary state minimum third-party coverage with a ₹10,000 damage deductible.',
+        'Premium Zero-Deductible (+₹2,500/day): ₹0 excess liability, complete windshield, tire/wheel, undercarriage shield, and priority concierge swap.',
+        'Refundable Authorization Hold: A temporary ₹15,000 security hold is authorized at trip start and automatically released within 2 hours of safe return.',
       ],
     },
     {

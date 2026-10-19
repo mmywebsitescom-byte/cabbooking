@@ -502,7 +502,7 @@ export default function CarDetailPage() {
                     <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.82rem', margin: 0 }}>300 free miles per 24-hr cycle included.</p>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--outline)', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
-                    $0.35/extra mi afterwards
+                    ₹25/extra km afterwards
                   </span>
                 </div>
 
@@ -525,7 +525,7 @@ export default function CarDetailPage() {
                       <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>credit_card</span>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--on-surface)' }}>Security Hold</span>
                     </div>
-                    <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.82rem', margin: 0 }}>$200 refundable authorization hold upon start.</p>
+                    <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.82rem', margin: 0 }}>₹15,000 refundable authorization hold upon start.</p>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: 'var(--outline)', marginTop: '0.75rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
                     Auto-released within 2 hours

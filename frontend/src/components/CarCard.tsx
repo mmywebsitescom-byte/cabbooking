@@ -7,8 +7,8 @@ interface Props {
 }
 
 const categoryColors: Record<string, string> = {
-  hatchback: '#6366f1', sedan: '#3b82f6', suv: '#f59e0b',
-  luxury: '#c9a84c', mpv: '#10b981', electric: '#22c55e',
+  hatchback: '#7DAACB', sedan: '#5587AA', suv: '#CE2626',
+  luxury: '#E8DBB3', mpv: '#7DAACB', electric: '#22c55e',
 };
 
 export default function CarCard({ car }: Props) {
