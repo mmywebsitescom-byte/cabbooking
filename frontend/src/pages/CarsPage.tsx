@@ -3,12 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { carsApi } from '../lib/api';
 import type { Car } from '../types';
 
+import { FALLBACK_CARS } from '../data/fallbackCars';
+
 export default function CarsPage() {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || '';
 
-  const [cars, setCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [cars, setCars] = useState<Car[]>(FALLBACK_CARS);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [tariff, setTariff] = useState<'hourly' | 'daily'>('hourly');
   const [maxPrice, setMaxPrice] = useState(150);

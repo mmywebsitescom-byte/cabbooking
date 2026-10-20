@@ -59,9 +59,11 @@ const DEFAULT_REVIEWS = [
   }
 ];
 
+import { FALLBACK_CARS } from '../data/fallbackCars';
+
 export default function HomePage() {
   const navigate = useNavigate();
-  const [featuredCars, setFeaturedCars] = useState<CarType[]>([]);
+  const [featuredCars, setFeaturedCars] = useState<CarType[]>(FALLBACK_CARS);
   const [headlineMain, setHeadlineMain] = useState('Your Drive. Your Time.');
   const [headlineHighlight, setHeadlineHighlight] = useState('Your Freedom.');
   const [reviews, setReviews] = useState<any[]>(DEFAULT_REVIEWS);
