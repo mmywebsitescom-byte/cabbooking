@@ -13,7 +13,7 @@ export default function CarsPage() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [tariff, setTariff] = useState<'hourly' | 'daily'>('hourly');
-  const [maxPrice, setMaxPrice] = useState(150);
+  const [maxPrice, setMaxPrice] = useState(6000);
   const [selectedClasses, setSelectedClasses] = useState<string[]>(categoryParam ? [categoryParam] : []);
   const [selectedTransmission, setSelectedTransmission] = useState<string>('all');
   const [selectedFuels, setSelectedFuels] = useState<string[]>([]);
@@ -89,7 +89,7 @@ export default function CarsPage() {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setMaxPrice(150);
+    setMaxPrice(6000);
     setSelectedClasses([]);
     setSelectedTransmission('all');
     setSelectedFuels([]);
@@ -100,10 +100,10 @@ export default function CarsPage() {
       return false;
     }
     if (tariff === 'hourly' && car.pricing.hourlyRate > maxPrice) return false;
-    if (tariff === 'daily' && car.pricing.dailyRate > maxPrice * 7) return false;
-    if (selectedClasses.length > 0 && !selectedClasses.includes(car.category)) return false;
-    if (selectedTransmission !== 'all' && car.transmission !== selectedTransmission) return false;
-    if (selectedFuels.length > 0 && !selectedFuels.includes(car.fuelType)) return false;
+    if (tariff === 'daily' && car.pricing.dailyRate > maxPrice * 8) return false;
+    if (selectedClasses.length > 0 && !selectedClasses.includes(car.category.toLowerCase())) return false;
+    if (selectedTransmission !== 'all' && car.transmission.toLowerCase() !== selectedTransmission.toLowerCase()) return false;
+    if (selectedFuels.length > 0 && !selectedFuels.includes(car.fuelType.toLowerCase())) return false;
     return true;
   }).sort((a, b) => {
     if (sortBy === 'price-low') return a.pricing.hourlyRate - b.pricing.hourlyRate;
@@ -118,35 +118,35 @@ export default function CarsPage() {
     selectedFuels.length +
     (searchTerm.trim() ? 1 : 0) +
     (tariff !== 'hourly' ? 1 : 0) +
-    (maxPrice < 150 ? 1 : 0);
+    (maxPrice < 6000 ? 1 : 0);
 
   return (
-    <div style={{ backgroundColor: 'var(--surface)', minHeight: '100vh', paddingTop: '5rem' }}>
+    <div style={{ backgroundColor: 'var(--surface)', minHeight: '100vh', paddingTop: '5.75rem', width: '100%', overflowX: 'hidden' }}>
       {/* ================= SUB-HEADER BREADCRUMB / FLEET INFO ================= */}
-      <section style={{ backgroundColor: 'var(--surface-container-low)', borderBottom: '1px solid rgba(195, 198, 215, 0.4)', padding: '0.75rem 0' }}>
-        <div style={{ maxWidth: '96rem', margin: '0 auto', padding: '0 1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.82rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--on-surface-variant)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)', fontWeight: 600 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>directions_car</span>
+      <section style={{ backgroundColor: 'var(--surface-container-low)', borderBottom: '1px solid rgba(195, 198, 215, 0.4)', padding: '0.65rem 0' }}>
+        <div style={{ maxWidth: '96rem', margin: '0 auto', padding: '0 1rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.78rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', color: 'var(--on-surface-variant)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--primary)', fontWeight: 700 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.05rem' }}>directions_car</span>
               50 Vehicles in Active Fleet
             </span>
-            <span style={{ color: 'var(--outline-variant)' }}>•</span>
-            <span style={{ color: 'var(--on-surface)' }}>Rent for Your Exact Time Period</span>
+            <span style={{ color: 'var(--outline-variant)' }} className="hidden md:inline">•</span>
+            <span style={{ color: 'var(--on-surface)' }} className="hidden md:inline">Rent for Your Exact Time Period</span>
             <span style={{ color: 'var(--outline-variant)' }}>•</span>
             <span style={{ color: '#b45309', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>local_gas_station</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '0.95rem' }}>local_gas_station</span>
               Customer Refuels (Fuel Not Included)
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--on-surface-variant)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', color: 'var(--on-surface-variant)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#15803d', fontWeight: 600 }}>
               <span style={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#15803d' }} className="pulse-green"></span>
               Live Available Now
             </span>
             <span style={{ color: 'var(--outline-variant)' }}>|</span>
             <Link to="/policies" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>verified_user</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '0.95rem' }}>verified_user</span>
               Mandatory Sign-In Policy
             </Link>
           </div>
@@ -154,12 +154,14 @@ export default function CarsPage() {
       </section>
 
       {/* ================= MAIN 2-COLUMN LAYOUT ================= */}
-      <main style={{ maxWidth: '96rem', margin: '0 auto', padding: '1.5rem 1.25rem 8rem', minHeight: '100vh' }}>
+      <main style={{ maxWidth: '96rem', margin: '0 auto', padding: '1.25rem 1rem 8rem', minHeight: '100vh', width: '100%', boxSizing: 'border-box' }}>
         <div
           className="cars-layout-responsive"
           style={{
             gridTemplateColumns: showFilters ? undefined : '1fr',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            minWidth: 0,
+            width: '100%'
           }}
         >
           
@@ -266,23 +268,23 @@ export default function CarsPage() {
               <div style={{ paddingTop: '0.5rem', borderTop: '1px solid rgba(195,198,215,0.3)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--on-surface-variant)' }}>Max Rate</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--surface-container)', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
-                    ₹{maxPrice}/hr
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#CE2626', background: '#FFF8ED', border: '1px solid #FDE68A', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                    ₹{maxPrice.toLocaleString('en-IN')}/hr
                   </span>
                 </div>
                 <input
                   type="range"
-                  min="15"
-                  max="150"
-                  step="5"
+                  min="1000"
+                  max="6000"
+                  step="200"
                   value={maxPrice}
                   onChange={e => setMaxPrice(Number(e.target.value))}
-                  style={{ width: '100%' }}
+                  style={{ width: '100%', accentColor: '#CE2626', cursor: 'pointer' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--outline)', marginTop: '0.2rem' }}>
-                  <span>₹15/hr</span>
-                  <span>₹85/hr</span>
-                  <span>₹150+/hr</span>
+                  <span>₹1,000/hr</span>
+                  <span>₹3,500/hr</span>
+                  <span>₹6,000/hr</span>
                 </div>
               </div>
 

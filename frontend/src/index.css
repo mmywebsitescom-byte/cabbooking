@@ -104,13 +104,6 @@
 
 html {
   font-size: 15px;
-  zoom: 0.93;
-}
-
-@media (min-width: 1440px) {
-  html {
-    zoom: 0.94;
-  }
 }
 
 * {
@@ -125,6 +118,8 @@ body {
   color: var(--on-surface);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
