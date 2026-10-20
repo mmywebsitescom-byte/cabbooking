@@ -59,10 +59,10 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
   startRadius = 28,
   endRadius = 0,
   mediaZoom = 1.25,
-  scrollDistance = 1.4,
-  holdDistance = 0.8,
-  smoothing = 0.06,
-  overlayScrim = 0.62,
+  scrollDistance = 1.3,
+  holdDistance = 0.7,
+  smoothing = 0.05,
+  overlayScrim = 0.65,
   useWindowScroll = true,
   enabled = true,
   children,
@@ -80,6 +80,8 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
   const hintRef = useRef<HTMLDivElement | null>(null);
 
   const currentProgressRef = useRef<number>(0);
+  const isMobileRef = useRef<boolean>(false);
+  const isTouchRef = useRef<boolean>(false);
 
   const propsRef = useRef<Required<Pick<ScrollExpandProps, ConfigKey>>>({
     startWidth,
@@ -117,13 +119,19 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
     const c = propsRef.current;
 
     const e = smoothstep(0, 1, p);
+    const isMob = isMobileRef.current;
+
+    // Responsive start dimensions: On mobile phone, card is wider (88% vs 54%)
+    const initW = isMob ? 88 : c.startWidth;
+    const initH = isMob ? 72 : c.startHeight;
+    const initR = isMob ? 20 : c.startRadius;
 
     // 1. Clip path interpolation (expands smoothly to 100% full screen, reverses smoothly to inset card)
-    const w = c.startWidth + (100 - c.startWidth) * e;
-    const h = c.startHeight + (100 - c.startHeight) * e;
+    const w = initW + (100 - initW) * e;
+    const h = initH + (100 - initH) * e;
     const ix = Math.max(0, (100 - w) / 2);
     const iy = Math.max(0, (100 - h) / 2);
-    const r = c.startRadius + (c.endRadius - c.startRadius) * e;
+    const r = initR + (c.endRadius - initR) * e;
     frame.style.clipPath = `inset(${iy}% ${ix}% ${iy}% ${ix}% round ${r}px)`;
 
     // 2. Media zoom interpolation
@@ -137,27 +145,27 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     // 4. Initial title fade-out and gentle rise (fades back in when scrolling reverse)
     if (titleRef.current) {
-      const titleFade = smoothstep(0.2, 0.6, p);
+      const titleFade = smoothstep(0.12, 0.55, p);
       titleRef.current.style.opacity = `${1 - titleFade}`;
-      titleRef.current.style.transform = `translate3d(0, ${-24 * titleFade}px, 0) scale(${1 + 0.04 * titleFade})`;
+      titleRef.current.style.transform = `translate3d(0, ${-28 * titleFade}px, 0)`;
       titleRef.current.style.pointerEvents = 'none';
       titleRef.current.style.visibility = titleFade >= 0.98 ? 'hidden' : 'visible';
     }
 
     // 5. Scroll hint fade-out (fades back in when scrolling reverse)
     if (hintRef.current) {
-      const hintFade = smoothstep(0.0, 0.18, p);
+      const hintFade = smoothstep(0.0, 0.22, p);
       hintRef.current.style.opacity = `${1 - hintFade}`;
-      hintRef.current.style.transform = `translate3d(0, ${12 * hintFade}px, 0)`;
+      hintRef.current.style.transform = `translate3d(0, ${14 * hintFade}px, 0)`;
       hintRef.current.style.pointerEvents = hintFade >= 0.85 ? 'none' : 'auto';
       hintRef.current.style.visibility = hintFade >= 0.98 ? 'hidden' : 'visible';
     }
 
     // 6. Final content (Headlines & Search Form) fade-in and slide-up (fades out when scrolling reverse)
     if (overlayRef.current) {
-      const contentFade = smoothstep(0.42, 0.92, p);
+      const contentFade = smoothstep(0.38, 0.88, p);
       overlayRef.current.style.opacity = `${contentFade}`;
-      overlayRef.current.style.transform = `translate3d(0, ${28 * (1 - contentFade)}px, 0)`;
+      overlayRef.current.style.transform = `translate3d(0, ${26 * (1 - contentFade)}px, 0)`;
       overlayRef.current.style.pointerEvents = contentFade >= 0.7 ? 'auto' : 'none';
       overlayRef.current.style.visibility = contentFade <= 0.02 ? 'hidden' : 'visible';
     }
@@ -169,6 +177,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
     if (!track || !stage) return;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    isTouchRef.current = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
     let raf = 0;
     let current = 0;
@@ -178,6 +187,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     const measure = () => {
       const c = propsRef.current;
+      isMobileRef.current = window.innerWidth < 768;
       stageH = c.useWindowScroll ? window.innerHeight : track.clientHeight;
       if (stageH <= 0) return;
 
@@ -188,7 +198,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       stage.style.height = `${stageH}px`;
 
       const w = track.clientWidth || window.innerWidth || stageH;
-      stage.style.setProperty('--se-title-size', `${clamp(w * 0.055, 22, 72)}px`);
+      stage.style.setProperty('--se-title-size', `${clamp(w * 0.055, 20, 68)}px`);
     };
 
     const readProgress = () => {
@@ -226,7 +236,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     const onScroll = () => {
       target = readProgress();
-      if (propsRef.current.smoothing <= 0 || reduceMotion || target === 0) {
+      if (propsRef.current.smoothing <= 0 || reduceMotion || isTouchRef.current) {
         current = target;
         applyProgress(current);
         return;
@@ -241,7 +251,7 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       applyProgress(current);
     };
 
-    // Initial setup
+    // Initial measurement & first frame
     measure();
     target = readProgress();
     current = target;
@@ -249,8 +259,8 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
 
     const scroller = useWindowScroll ? window : track;
     scroller.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('orientationchange', onResize, { passive: true });
 
     const ro = new ResizeObserver(onResize);
     ro.observe(track);
@@ -267,9 +277,8 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
   // Click on initial collapsed card smoothly expands the hero to 100%
   const handleStageClick = (e: React.MouseEvent) => {
     if (useWindowScroll && trackRef.current && currentProgressRef.current < 0.4) {
-      // Don't trigger if clicking interactive buttons or inputs
       const targetTag = (e.target as HTMLElement).tagName.toLowerCase();
-      if (targetTag === 'button' || targetTag === 'input' || targetTag === 'select' || targetTag === 'a') {
+      if (targetTag === 'button' || targetTag === 'input' || targetTag === 'select' || targetTag === 'a' || targetTag === 'label') {
         return;
       }
       const span = (window.innerHeight || 800) * propsRef.current.scrollDistance;
@@ -309,14 +318,14 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '280vh',
+        height: '280vh',
         overflow: 'visible',
         ...style
       }}
       onClick={handleStageClick}
       {...rest}
     >
-      {/* Sticky Stage: strictly pinned to top: 0 with exact 100vh height */}
+      {/* Sticky Stage: strictly pinned to top: 0 with exact 100vh/100dvh height */}
       <div
         ref={stageRef}
         className="sticky top-0 w-full overflow-hidden [--se-title-size:3.5rem]"
@@ -356,12 +365,13 @@ const ScrollExpand: React.FC<ScrollExpandProps> = ({
           {children ? (
             <div
               ref={overlayRef}
-              className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 sm:p-6 md:p-8"
+              className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 sm:p-6 md:p-8 overflow-y-auto"
               style={{
                 opacity: 0,
-                transform: 'translate3d(0, 28px, 0)',
+                transform: 'translate3d(0, 26px, 0)',
                 pointerEvents: 'none',
-                willChange: 'opacity, transform'
+                willChange: 'opacity, transform',
+                maxHeight: '100%'
               }}
             >
               {children}

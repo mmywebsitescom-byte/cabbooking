@@ -390,7 +390,7 @@ export default function CarsPage() {
         )}
 
           {/* ================= RIGHT COLUMN (TOOLBAR + CATALOG GRID) ================= */}
-          <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0, width: '100%' }}>
             
             {/* Real-Time Rental Timing & Booking Conflict Checker Bar */}
             <div className="card-veloce" style={{
@@ -615,56 +615,74 @@ export default function CarsPage() {
             {/* Quick Filter Strip when Sidebar is Minimized */}
             {!showFilters && (
               <div
-                className="card-veloce"
                 style={{
-                  padding: '0.75rem 1.25rem',
+                  padding: '0.65rem 1rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   gap: '0.75rem',
                   overflowX: 'auto',
-                  border: '1px dashed rgba(0, 74, 198, 0.4)',
-                  backgroundColor: 'rgba(238, 242, 255, 0.5)'
+                  border: '1px solid #E8DBB3',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '1rem',
+                  maxWidth: '100%',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                  <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>filter_list</span>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--on-surface)' }}>Quick Filter:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                  <span className="material-symbols-outlined" style={{ color: '#CE2626', fontSize: '1.15rem' }}>filter_list</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#18191B' }}>Quick Filter:</span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'nowrap', overflowX: 'auto', padding: '0.2rem 0' }}>
+                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'nowrap', overflowX: 'auto', padding: '0.15rem 0', WebkitOverflowScrolling: 'touch' }}>
                   <button
                     type="button"
                     onClick={() => setSelectedClasses([])}
                     style={{
-                      padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)',
-                      border: '1px solid', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
-                      borderColor: selectedClasses.length === 0 ? 'var(--primary)' : 'rgba(195,198,215,0.6)',
-                      backgroundColor: selectedClasses.length === 0 ? 'var(--primary)' : '#ffffff',
-                      color: selectedClasses.length === 0 ? '#ffffff' : 'var(--on-surface-variant)',
-                      whiteSpace: 'nowrap'
+                      padding: '0.3rem 0.8rem',
+                      borderRadius: '9999px',
+                      border: '1.5px solid',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      borderColor: selectedClasses.length === 0 ? '#CE2626' : '#E8DBB3',
+                      backgroundColor: selectedClasses.length === 0 ? '#CE2626' : '#FFFDEB',
+                      color: selectedClasses.length === 0 ? '#FFFFFF' : '#18191B',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease'
                     }}
                   >
                     All Fleet ({cars.length})
                   </button>
-                  {['SUV', 'Sedan', 'Luxury', 'Sports', 'EV', 'Convertible'].map(cls => {
-                    const isSelected = selectedClasses.includes(cls);
-                    const count = categoryCounts[cls] || 0;
+                  {[
+                    { id: 'suv', label: 'SUV' },
+                    { id: 'sedan', label: 'Sedan' },
+                    { id: 'electric', label: 'EV' },
+                    { id: 'luxury', label: 'Luxury' },
+                    { id: 'hatchback', label: 'Hatchback' }
+                  ].map(cls => {
+                    const isSelected = selectedClasses.includes(cls.id);
+                    const count = categoryCounts[cls.id] || 0;
                     return (
                       <button
-                        key={cls}
+                        key={cls.id}
                         type="button"
-                        onClick={() => handleClassToggle(cls)}
+                        onClick={() => handleClassToggle(cls.id)}
                         style={{
-                          padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)',
-                          border: '1px solid', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
-                          borderColor: isSelected ? 'var(--primary)' : 'rgba(195,198,215,0.6)',
-                          backgroundColor: isSelected ? 'var(--primary)' : '#ffffff',
-                          color: isSelected ? '#ffffff' : 'var(--on-surface)',
-                          whiteSpace: 'nowrap'
+                          padding: '0.3rem 0.8rem',
+                          borderRadius: '9999px',
+                          border: '1.5px solid',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          borderColor: isSelected ? '#CE2626' : '#E8DBB3',
+                          backgroundColor: isSelected ? '#CE2626' : '#FFFDEB',
+                          color: isSelected ? '#FFFFFF' : '#18191B',
+                          whiteSpace: 'nowrap',
+                          transition: 'all 0.15s ease'
                         }}
                       >
-                        {cls} {count > 0 && `(${count})`}
+                        {cls.label} {count > 0 && `(${count})`}
                       </button>
                     );
                   })}
@@ -674,12 +692,20 @@ export default function CarsPage() {
                   type="button"
                   onClick={() => setShowFilters(true)}
                   style={{
-                    border: 'none', background: 'none', color: 'var(--primary)',
-                    fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap', flexShrink: 0
+                    border: 'none',
+                    background: 'none',
+                    color: '#CE2626',
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>tune</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>tune</span>
                   More Filters
                 </button>
               </div>
